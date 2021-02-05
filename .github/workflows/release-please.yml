@@ -12,5 +12,4 @@
            token: ${{ secrets.GITHUB_TOKEN }}
            release-type: node
            package-name: release-please-action
-           primary-branch: main
 
