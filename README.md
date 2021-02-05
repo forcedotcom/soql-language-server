@@ -1,6 +1,5 @@
 # SOQL Language Server
 
-
 This repo contains the source for the SOQL Language Server.
 
 ## Development
