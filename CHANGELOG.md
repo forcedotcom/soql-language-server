@@ -1,0 +1,3 @@
+# SOQL Language Server Changelog
+
+
