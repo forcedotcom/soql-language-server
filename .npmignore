@@ -1,4 +1,10 @@
 src/
-jest.config.js
+Dependencies/
+jest.config*js
 tsconfig.json
 package-lock.json
+yarn.lock
+.circleci
+.github
+.vscode
+
