@@ -30,7 +30,10 @@ jobs:
           name: 'Run Unit Tests'
           command: |
             echo 'Run Unit Tests'
-            yarn run test:unit:coverage
+            mkdir -p ./test-results/junit
+            JEST_JUNIT_OUTPUT_DIR=./test-results yarn run test:unit:coverage --ci --reporters=default --reporters=jest-junit
+      - store_test_results:
+          path: ./test-results
       - run:
           name: Upload coverage report to Codecov
           command: bash <(curl -s https://codecov.io/bash) -F language-server -t ${CODECOV_TOKEN}
