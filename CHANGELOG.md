@@ -1,5 +1,12 @@
 # Changelog
 
+### [0.4.2](https://www.github.com/forcedotcom/soql-language-server/compare/v0.4.1...v0.4.2) (2021-02-08)
+
+
+### Bug Fixes
+
+* missing `yarn build` step. Join run commands ([c6846bc](https://www.github.com/forcedotcom/soql-language-server/commit/c6846bc34d14d39f2477abb575cdc0a61c5a0d94))
+
 ### [0.4.1](https://www.github.com/forcedotcom/soql-language-server/compare/v0.4.0...v0.4.1) (2021-02-05)
 
 

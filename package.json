@@ -1,6 +1,6 @@
 {
   "name": "@salesforce/soql-language-server",
-  "version": "0.4.1",
+  "version": "0.4.2",
   "description": "SOQL Language Server",
   "engines": {
     "node": "*"
