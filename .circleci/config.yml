@@ -36,7 +36,7 @@ jobs:
           path: ./test-results
       - run:
           name: Upload coverage report to Codecov
-          command: bash <(curl -s https://codecov.io/bash) -F language-server -t ${CODECOV_TOKEN}
+          command: bash <(curl -s https://codecov.io/bash) -t ${CODECOV_TOKEN}
 
   notify_slack:
     docker: *node-build-image
