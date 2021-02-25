@@ -7,4 +7,12 @@ yarn.lock
 .circleci
 .github
 .vscode
+commitlint.config.js
+docs/
+CODE_OF_CONDUCT.md
+SECURITY.md
 
+# test files
+/lib/**/*.test.d.ts
+/lib/**/*.test.js
+/lib/**/*.test.js.map
