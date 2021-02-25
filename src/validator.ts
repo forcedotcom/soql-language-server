@@ -6,12 +6,12 @@
  *
  */
 
-import { SOQLParser } from '@salesforce/soql-parser';
+import { SOQLParser } from '@salesforce/soql-common/lib/soql-parser';
 import { Diagnostic, DiagnosticSeverity, Range } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { RequestTypes, RunQueryResponse } from './index';
 import { Connection } from 'vscode-languageserver';
-import { parseHeaderComments, SoqlWithComments } from './soqlComments';
+import { parseHeaderComments, SoqlWithComments } from '@salesforce/soql-common/lib/soqlComments';
 
 const findLimitRegex = new RegExp(/LIMIT\s+\d+\s*$/, 'i');
 const findPositionRegex = new RegExp(
