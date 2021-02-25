@@ -7,10 +7,10 @@ import {
   SoqlSelectColumnExprContext,
   SoqlSemiJoinContext,
   SoqlWhereExprContext,
-} from '@salesforce/soql-parser/lib/generated/SoqlParser';
+} from '@salesforce/soql-common/lib/soql-parser/generated/SoqlParser';
 import { ParserRuleContext, RuleContext, Token } from 'antlr4ts';
 import { ParseTreeWalker, RuleNode } from 'antlr4ts/tree';
-import { SoqlParserListener } from '@salesforce/soql-parser/lib/generated/SoqlParserListener';
+import { SoqlParserListener } from '@salesforce/soql-common/lib/soql-parser/generated/SoqlParserListener';
 
 interface InnerSoqlQueryInfo {
   soqlInnerQueryNode: ParserRuleContext;

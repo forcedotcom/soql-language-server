@@ -9,9 +9,9 @@
 import {
   SoqlParser,
   SoqlQueryContext,
-} from '@salesforce/soql-parser/lib/generated/SoqlParser';
-import { SoqlLexer } from '@salesforce/soql-parser/lib/generated/SoqlLexer';
-import { LowerCasingCharStream } from '@salesforce/soql-parser';
+} from '@salesforce/soql-common/lib/soql-parser/generated/SoqlParser';
+import { SoqlLexer } from '@salesforce/soql-common/lib/soql-parser/generated/SoqlLexer';
+import { LowerCasingCharStream } from '@salesforce/soql-common/lib/soql-parser';
 import {
   CompletionItem,
   CompletionItemKind,
@@ -39,7 +39,7 @@ import {
   ParsedSoqlField,
   SoqlQueryAnalyzer,
 } from './completion/soql-query-analysis';
-import { parseHeaderComments } from './soqlComments';
+import { parseHeaderComments } from '@salesforce/soql-common/lib/soqlComments';
 
 const SOBJECTS_ITEM_LABEL_PLACEHOLDER = '__SOBJECTS_PLACEHOLDER';
 const SOBJECT_FIELDS_LABEL_PLACEHOLDER = '__SOBJECT_FIELDS_PLACEHOLDER';
