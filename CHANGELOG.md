@@ -1,5 +1,12 @@
 # Changelog
 
+### [0.6.1](https://www.github.com/forcedotcom/soql-language-server/compare/v0.6.0...v0.6.1) (2021-02-25)
+
+
+### Bug Fixes
+
+* do not publish unnecessary files ([67f437d](https://www.github.com/forcedotcom/soql-language-server/commit/67f437dfead568fe23ea6095a0a775ce2d8fe531))
+
 ## [0.6.0](https://www.github.com/forcedotcom/soql-language-server/compare/v0.5.0...v0.6.0) (2021-02-25)
 
 
