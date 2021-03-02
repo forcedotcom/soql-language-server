@@ -5,7 +5,6 @@
 
 ### Bug Fixes
 
-* trigger gh action ([ddc500f](https://www.github.com/forcedotcom/soql-language-server/commit/ddc500fa805a35221924af719a82964d4303ccf4))
 
 ### [0.6.1](https://www.github.com/forcedotcom/soql-language-server/compare/v0.6.0...v0.6.1) (2021-02-25)
 
