@@ -608,10 +608,10 @@
     "@types/yargs" "^15.0.0"
     chalk "^4.0.0"
 
-"@salesforce/soql-common@0.2.0":
-  version "0.2.0"
-  resolved "https://registry.yarnpkg.com/@salesforce/soql-common/-/soql-common-0.2.0.tgz#8c6cfb427d76e4913f69e28eb7f7a0b9de819642"
-  integrity sha512-6lOxlRNTJwzOP3dmwRnrNFjy3flylIjmjy3JQyPXs3jKHexh834svBgHDWuNGXUBDgfSvALJjVTySXLJf2wj/w==
+"@salesforce/soql-common@0.2.1":
+  version "0.2.1"
+  resolved "https://registry.yarnpkg.com/@salesforce/soql-common/-/soql-common-0.2.1.tgz#901cccfd444926e38ab81e26bacd0ec919743c17"
+  integrity sha512-6/yoLlADP1PdR0I/zBBGX7U2s9lOX3JIvJaDiUivnNtM4waLUJJVOWq6XUY+NCDxJ9Du423W2AjLte5QHQOq6Q==
 
 "@sinonjs/commons@^1.7.0":
   version "1.8.2"
