@@ -2,6 +2,7 @@ version: 2.1
 
 orbs:
   slack: circleci/slack@3.4.2
+  win: circleci/windows@2.2.0
 
 variables:
   - &node-build-image
@@ -10,8 +11,8 @@ variables:
 jobs:
 
   language-server:
-    docker: *node-build-image
-    environment:
+    # docker: *node-build-image
+    executor: win/default
     steps:
       - checkout
       - restore_cache:
@@ -23,11 +24,16 @@ jobs:
             - ./node_modules
       - run:
           name: Build Packages
+          shell: bash.exe
           command: |
             echo 'Building...'
+            echo 'Node version: '
+            node --version
+            yarn version
             yarn run build
       - run:
           name: 'Run Unit Tests'
+          shell: bash.exe
           command: |
             echo 'Run Unit Tests'
             mkdir -p ./test-results/junit
@@ -36,6 +42,7 @@ jobs:
           path: ./test-results
       - run:
           name: Upload coverage report to Codecov
+          shell: bash.exe
           command: bash <(curl -s https://codecov.io/bash) -t ${CODECOV_TOKEN}
 
   notify_slack:
