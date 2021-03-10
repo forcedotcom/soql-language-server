@@ -23,11 +23,6 @@ jobs:
       - checkout
       - restore_cache:
           key: dependency-cache-{{ checksum "yarn.lock" }}
-      - run: yarn
-      - save_cache:
-          key: dependency-cache-{{ checksum "yarn.lock" }}
-          paths:
-            - ./node_modules
       - run:
           name: 'Install node'
           shell: bash.exe
@@ -42,6 +37,11 @@ jobs:
           command: |
             npm install --global yarn
             yarn --version
+      - run: yarn install
+      - save_cache:
+          key: dependency-cache-{{ checksum "yarn.lock" }}
+          paths:
+            - ./node_modules
       - run:
           name: Build Packages
           shell: bash.exe
