@@ -28,6 +28,8 @@ jobs:
             echo 'Building...'
             echo 'Node version: '
             node --version
+            echo 'nvm ls: '
+            nvm ls
             yarn version
             yarn run build
       - run:
