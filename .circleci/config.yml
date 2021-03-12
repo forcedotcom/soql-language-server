@@ -2,6 +2,12 @@ version: 2.1
 
 orbs:
   slack: circleci/slack@3.4.2
+  win: circleci/windows@2.4.0
+
+parameters:
+  node-version:
+    type: string
+    default: '14.15.5'
 
 variables:
   - &node-build-image
@@ -10,24 +16,46 @@ variables:
 jobs:
 
   language-server:
-    docker: *node-build-image
+    executor: win/default
     environment:
+      NODE_VERSION: << pipeline.parameters.node-version >>
     steps:
       - checkout
       - restore_cache:
-          key: dependency-cache-{{ checksum "yarn.lock" }}
-      - run: yarn
+          key: yarn-cache-{{ checksum "yarn.lock" }}
+      - run:
+          name: 'Install node'
+          shell: bash.exe
+          command: |
+            echo 'nvm ls: '
+            nvm ls
+            nvm install $NODE_VERSION
+            nvm use $NODE_VERSION
+      - run:
+          name: 'Install yarn'
+          shell: bash.exe
+          command: |
+            npm install --global yarn
+            yarn --version
+      - run: yarn install
       - save_cache:
-          key: dependency-cache-{{ checksum "yarn.lock" }}
+          key: yarn-cache-{{ checksum "yarn.lock" }}
           paths:
             - ./node_modules
+            - ~/.cache/yarn
       - run:
           name: Build Packages
+          shell: bash.exe
           command: |
             echo 'Building...'
+            echo 'Node version: '
+            node --version
+            echo 'Node version: '
+            yarn --version
             yarn run build
       - run:
           name: 'Run Unit Tests'
+          shell: bash.exe
           command: |
             echo 'Run Unit Tests'
             mkdir -p ./test-results/junit
@@ -36,6 +64,7 @@ jobs:
           path: ./test-results
       - run:
           name: Upload coverage report to Codecov
+          shell: bash.exe
           command: bash <(curl -s https://codecov.io/bash) -t ${CODECOV_TOKEN}
 
   notify_slack:
