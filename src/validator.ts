@@ -11,7 +11,10 @@ import { Diagnostic, DiagnosticSeverity, Range } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { RequestTypes, RunQueryResponse } from './index';
 import { Connection } from 'vscode-languageserver';
-import { parseHeaderComments, SoqlWithComments } from '@salesforce/soql-common/lib/soqlComments';
+import {
+  parseHeaderComments,
+  SoqlWithComments,
+} from '@salesforce/soql-common/lib/soqlComments';
 
 const findLimitRegex = new RegExp(/LIMIT\s+\d+\s*$/, 'i');
 const findPositionRegex = new RegExp(
@@ -71,12 +74,13 @@ export class Validator {
       appendLimit0(soqlWithHeaderComments.soqlText)
     )) as RunQueryResponse;
     if (response.error) {
-      const {errorMessage, errorRange } = extractErrorRange(soqlWithHeaderComments, response.error.message);
+      const { errorMessage, errorRange } = extractErrorRange(
+        soqlWithHeaderComments,
+        response.error.message
+      );
       diagnostics.push({
         severity: DiagnosticSeverity.Error,
-        range:
-          errorRange ||
-          documentRange(textDocument),
+        range: errorRange || documentRange(textDocument),
         message: errorMessage,
         source: 'soql',
       });
@@ -110,9 +114,9 @@ function extractErrorRange(
       // Strip out the line and column information from the error message
       errorMessage: errorMessage.replace(findPositionRegex, 'Error:'),
       errorRange: {
-            start: { line, character },
-            end: { line, character: character + cause.length },
-          },
+        start: { line, character },
+        end: { line, character: character + cause.length },
+      },
     };
   } else {
     return { errorMessage: errorMessage, errorRange: undefined };

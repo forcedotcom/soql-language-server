@@ -86,7 +86,7 @@ class SoqlInnerQueriesListener implements SoqlParserListener {
 
   public findInnerQuery(atIndex: number): InnerSoqlQueryInfo | undefined {
     let closestQuery: InnerSoqlQueryInfo | undefined;
-    for (let query of this.innerSoqlQueries.values()) {
+    for (const query of this.innerSoqlQueries.values()) {
       if (this.queryContainsTokenIndex(query, atIndex)) {
         closestQuery = query;
       }

@@ -24,7 +24,7 @@ function createMockClientConnection(
     | { error: RunQueryErrorResponse }
 ): Connection {
   return {
-    // @ts-ignore
+    // @ts-expect-error: just for testing
     async sendRequest(method: string, params: any) {
       return response;
     },

@@ -57,8 +57,6 @@ export function completionsFor(
   line: number,
   column: number
 ): CompletionItem[] {
-
-
   const lexer = new SoqlLexer(
     new LowerCasingCharStream(parseHeaderComments(text).headerPaddedSoqlText)
   );
@@ -151,6 +149,7 @@ export function last(array: any[]) {
 const possibleIdentifierPrefix = /[\w]$/;
 const lineSeparator = /\n|\r|\r\n/g;
 export type CursorPosition = { line: number; column: number };
+
 /**
  * @returns the token index for which we want to provide completion candidates,
  * which depends on the cursor possition.
@@ -228,7 +227,7 @@ function generateCandidatesFromTokens(
   tokenIndex: number
 ): CompletionItem[] {
   const items: CompletionItem[] = [];
-  for (let [tokenType, followingTokens] of tokens) {
+  for (const [tokenType, followingTokens] of tokens) {
     // Don't propose what's already at the cursor position
     if (tokenType === tokenStream.get(tokenIndex).type) {
       continue;
@@ -281,7 +280,7 @@ function generateCandidatesFromTokens(
       itemText = 'COUNT()';
     }
 
-    let newItem = soqlItemContext
+    const newItem = soqlItemContext
       ? withSoqlContext(newKeywordItem(itemText), soqlItemContext)
       : newKeywordItem(itemText);
 
@@ -311,7 +310,7 @@ function generateCandidatesFromRules(
 ): CompletionItem[] {
   const completionItems: CompletionItem[] = [];
 
-  for (let [ruleId, ruleData] of c3Rules) {
+  for (const [ruleId, ruleData] of c3Rules) {
     const lastRuleId = ruleData.ruleList[ruleData.ruleList.length - 1];
 
     switch (ruleId) {
@@ -452,7 +451,7 @@ function generateCandidatesFromRules(
         if (!ruleData.ruleList.includes(SoqlParser.RULE_soqlHavingClause)) {
           const soqlFieldExpr = soqlQueryAnalyzer.extractWhereField(tokenIndex);
           if (soqlFieldExpr) {
-            for (let literalItem of createItemsForLiterals(soqlFieldExpr))
+            for (const literalItem of createItemsForLiterals(soqlFieldExpr))
               completionItems.push(literalItem);
           }
         }
@@ -580,14 +579,14 @@ function withSoqlContext(
 const newCompletionItem = (
   text: string,
   kind: CompletionItemKind,
-  extraOptions?: {}
+  extraOptions?: Partial<CompletionItem>
 ): CompletionItem => ({
   label: text,
   kind: kind,
   ...extraOptions,
 });
 
-const newFieldItem = (text: string, extraOptions?: {}) =>
+const newFieldItem = (text: string, extraOptions?: Partial<CompletionItem>) =>
   newCompletionItem(text, CompletionItemKind.Field, extraOptions);
 
 const newConstantItem = (text: string) =>
@@ -596,7 +595,11 @@ const newConstantItem = (text: string) =>
 const newObjectItem = (text: string) =>
   newCompletionItem(text, CompletionItemKind.Class);
 
-const newSnippetItem = (label: string, snippet: string, extraOptions?: {}) =>
+const newSnippetItem = (
+  label: string,
+  snippet: string,
+  extraOptions?: Partial<CompletionItem>
+) =>
   newCompletionItem(label, CompletionItemKind.Snippet, {
     insertText: snippet,
     insertTextFormat: InsertTextFormat.Snippet,
