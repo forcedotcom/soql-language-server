@@ -25,13 +25,13 @@ import QueryValidationFeature from './query-validation-feature';
 import { completionsFor } from './completion';
 
 // Create a connection for the server, using Node's IPC as a transport.
-let connection = createConnection(ProposedFeatures.all);
+const connection = createConnection(ProposedFeatures.all);
 connection.sendNotification('soql/validate', 'createConnection');
 
 let runQueryValidation: boolean;
 
 // Create a simple text document manager.
-let documents: TextDocuments<TextDocument> = new TextDocuments(TextDocument);
+const documents: TextDocuments<TextDocument> = new TextDocuments(TextDocument);
 
 connection.onInitialize((params: InitializeParams) => {
   runQueryValidation = QueryValidationFeature.hasRunQueryValidation(
@@ -51,7 +51,7 @@ connection.onInitialize((params: InitializeParams) => {
 });
 
 documents.onDidChangeContent(async (change) => {
-  let diagnostics = Validator.validateSoqlText(change.document);
+  const diagnostics = Validator.validateSoqlText(change.document);
   // clear syntax errors immediatly (don't wait on http call)
   connection.sendDiagnostics({ uri: change.document.uri, diagnostics });
 

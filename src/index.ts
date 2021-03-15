@@ -15,4 +15,3 @@ export interface RunQueryError {
   errorCode: string;
   message: string;
 }
-

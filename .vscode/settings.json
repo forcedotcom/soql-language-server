@@ -26,37 +26,8 @@
     "**/lib": true
   },
   "editor.tabSize": 2,
-  "prettier.singleQuote": true,
-  "prettier.configPath": "../.prettierrc",
-  "prettier.trailingComma": "none",
   "rewrap.wrappingColumn": 80,
-  "yaml.format.singleQuote": true,
   "editor.formatOnSave": true,
-  "editor.codeActionsOnSave": {
-    "source.fixAll.tslint": true
-  },
-  "files.trimTrailingWhitespace": true,
-  "files.insertFinalNewline": true,
-  "files.trimFinalNewlines": true,
-  "todohighlight.isCaseSensitive": false,
-  "todohighlight.include": ["**/*.ts", "**/*.html", "**/*.css", "**/*.scss"],
-  "todohighlight.exclude": [
-    "**/node_modules/**",
-    "**/dist/**",
-    "**/.vscode/**",
-    "**/*.min.*",
-    "**/*.map",
-    "**/lib/**"
-  ],
-  "todohighlight.keywords": [
-    "TODO:",
-    "NOTE:",
-    {
-      "text": "i18n:",
-      "color": "white",
-      "backgroundColor": "green"
-    }
-  ],
   "workbench.colorCustomizations": {
     "activityBar.background": "#b45151",
     "titleBar.activeBackground": "#b45151",

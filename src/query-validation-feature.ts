@@ -8,7 +8,9 @@ export default class QueryValidationFeature implements StaticFeature {
     return customCapabilities?.soql?.runQuery || false;
   }
 
-  initialize(): void {}
+  initialize(): void {
+    /* do nothing */
+  }
 
   fillClientCapabilities(capabilities: ClientCapabilities): void {
     const customCapabilities: ClientCapabilities & {
