@@ -24,6 +24,7 @@ interface InnerSoqlQueryInfo {
   sobjectName?: string;
   selectedFields?: string[];
   groupByFields?: string[];
+  isSemiJoin?: boolean;
 }
 
 export interface ParsedSoqlField {
@@ -37,12 +38,17 @@ export class SoqlQueryAnalyzer {
     ParseTreeWalker.DEFAULT.walk<SoqlParserListener>(this.innerQueriesListener, parsedQueryTree);
   }
 
-  public innerQueryInfoAt(cursorTokenIndex: number): InnerSoqlQueryInfo | undefined {
-    return this.innerQueriesListener.findInnerQuery(cursorTokenIndex);
+  public innermostQueryInfoAt(cursorTokenIndex: number): InnerSoqlQueryInfo | undefined {
+    const queries = this.queryInfosAt(cursorTokenIndex);
+    return queries.length > 0 ? queries[0] : undefined;
+  }
+
+  public queryInfosAt(cursorTokenIndex: number): InnerSoqlQueryInfo[] {
+    return this.innerQueriesListener.findQueriesAt(cursorTokenIndex);
   }
 
   public extractWhereField(cursorTokenIndex: number): ParsedSoqlField | undefined {
-    const sobject = this.innerQueryInfoAt(cursorTokenIndex)?.sobjectName;
+    const sobject = this.innermostQueryInfoAt(cursorTokenIndex)?.sobjectName;
 
     if (sobject) {
       const whereFieldListener = new SoqlWhereFieldListener(cursorTokenIndex, sobject);
@@ -58,14 +64,18 @@ export class SoqlQueryAnalyzer {
 class SoqlInnerQueriesListener implements SoqlParserListener {
   private innerSoqlQueries = new Map<number, InnerSoqlQueryInfo>();
 
-  public findInnerQuery(atIndex: number): InnerSoqlQueryInfo | undefined {
-    let closestQuery: InnerSoqlQueryInfo | undefined;
-    for (const query of this.innerSoqlQueries.values()) {
-      if (this.queryContainsTokenIndex(query, atIndex)) {
-        closestQuery = query;
-      }
-    }
-    return closestQuery;
+  /**
+   * Return the list of nested queries which cover the given token position
+   *
+   * @param atIndex token index
+   * @returns the array of queryinfos ordered from the innermost to the outermost
+   */
+  public findQueriesAt(atIndex: number): InnerSoqlQueryInfo[] {
+    const innerQueries = Array.from(this.innerSoqlQueries.values()).filter((query) =>
+      this.queryContainsTokenIndex(query, atIndex)
+    );
+    const sortedQueries = innerQueries.sort((queryA, queryB) => queryB.select.tokenIndex - queryA.select.tokenIndex);
+    return sortedQueries;
   }
 
   private queryContainsTokenIndex(innerQuery: InnerSoqlQueryInfo, atTokenIndex: number): boolean {
@@ -113,6 +123,7 @@ class SoqlInnerQueriesListener implements SoqlParserListener {
   public enterSoqlSemiJoin(ctx: SoqlSemiJoinContext): void {
     this.innerSoqlQueries.set(ctx.start.tokenIndex, {
       select: ctx.start,
+      isSemiJoin: true,
       soqlInnerQueryNode: ctx,
     });
   }

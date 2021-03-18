@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { SoqlParser, SoqlQueryContext } from '@salesforce/soql-common/lib/soql-parser/generated/SoqlParser';
+import { SoqlParser } from '@salesforce/soql-common/lib/soql-parser/generated/SoqlParser';
 import { SoqlLexer } from '@salesforce/soql-common/lib/soql-parser/generated/SoqlLexer';
 import { LowerCasingCharStream } from '@salesforce/soql-common/lib/soql-parser';
 import { CompletionItem, CompletionItemKind, InsertTextFormat } from 'vscode-languageserver';
@@ -26,6 +26,8 @@ import { ParsedSoqlField, SoqlQueryAnalyzer } from './completion/soql-query-anal
 
 const SOBJECTS_ITEM_LABEL_PLACEHOLDER = '__SOBJECTS_PLACEHOLDER';
 const SOBJECT_FIELDS_LABEL_PLACEHOLDER = '__SOBJECT_FIELDS_PLACEHOLDER';
+const RELATIONSHIPS_PLACEHOLDER = '__RELATIONSHIPS_PLACEHOLDER';
+const RELATIONSHIP_FIELDS_PLACEHOLDER = '__RELATIONSHIP_FIELDS_PLACEHOLDER';
 const LITERAL_VALUES_FOR_FIELD = '__LITERAL_VALUES_FOR_FIELD';
 const UPDATE_TRACKING = 'UPDATE TRACKING';
 const UPDATE_VIEWSTAT = 'UPDATE VIEWSTAT';
@@ -73,7 +75,7 @@ export function completionsFor(text: string, line: number, column: number): Comp
   const completionItems = itemsFromTokens.concat(itemsFromRules);
 
   // If we got no proposals from C3, handle some special cases "manually"
-  return handleSpecialCases(parsedQuery, tokenStream, completionTokenIndex, completionItems);
+  return handleSpecialCases(soqlQueryAnalyzer, tokenStream, completionTokenIndex, completionItems);
 }
 
 function collectC3CompletionCandidates(
@@ -86,7 +88,7 @@ function collectC3CompletionCandidates(
   core.ignoredTokens = new Set([
     SoqlLexer.BIND,
     SoqlLexer.LPAREN,
-    // SoqlLexer.DISTANCE, // Maybe handle it explicitly, as other built-in functions?
+    SoqlLexer.DISTANCE, // Maybe handle it explicitly, as other built-in functions. Idem for COUNT
     SoqlLexer.COMMA,
     SoqlLexer.PLUS,
     SoqlLexer.MINUS,
@@ -197,6 +199,11 @@ function generateCandidatesFromTokens(
 
     let itemText = followingKeywords.length > 0 ? baseKeyword + ' ' + followingKeywords : baseKeyword;
 
+    // No aggregate features on nested queries
+    const queryInfos = soqlQueryAnalyzer.queryInfosAt(tokenIndex);
+    if (queryInfos.length > 1 && (itemText === 'COUNT' || itemText === 'GROUP BY')) {
+      continue;
+    }
     let soqlItemContext: SoqlItemContext | undefined;
 
     if (fieldDependentOperators.has(tokenType)) {
@@ -215,8 +222,6 @@ function generateCandidatesFromTokens(
     // Some "manual" improvements for some keywords:
     if (['IN', 'NOT IN', 'INCLUDES', 'EXCLUDES'].includes(itemText)) {
       itemText = itemText + ' (';
-    } else if (['DISTANCE'].includes(itemText)) {
-      itemText = itemText + '(';
     } else if (itemText === 'COUNT') {
       // NOTE: The g4 grammar declares `COUNT()` explicitly, but not `COUNT(xyz)`.
       // Here we cover the first case:
@@ -254,10 +259,18 @@ function generateCandidatesFromRules(
 ): CompletionItem[] {
   const completionItems: CompletionItem[] = [];
 
+  const queryInfos = soqlQueryAnalyzer.queryInfosAt(tokenIndex);
+  const innermostQueryInfo = queryInfos.length > 0 ? queryInfos[0] : undefined;
+  const fromSObject = innermostQueryInfo?.sobjectName || DEFAULT_SOBJECT;
+  const soqlItemContext: SoqlItemContext = {
+    sobjectName: fromSObject,
+  };
+  const isInnerQuery = queryInfos.length > 1;
+  const relationshipName = isInnerQuery ? queryInfos[0].sobjectName : undefined;
+  const parentQuerySObject = isInnerQuery ? queryInfos[1].sobjectName : undefined;
+
   for (const [ruleId, ruleData] of c3Rules) {
     const lastRuleId = ruleData.ruleList[ruleData.ruleList.length - 1];
-    let innerQueryInfo;
-    let fromSObject;
 
     switch (ruleId) {
       case SoqlParser.RULE_soqlUpdateStatsClause:
@@ -270,27 +283,45 @@ function generateCandidatesFromRules(
         break;
       case SoqlParser.RULE_soqlFromExprs:
         if (tokenIndex === ruleData.startTokenIndex) {
-          completionItems.push(newObjectItem(SOBJECTS_ITEM_LABEL_PLACEHOLDER));
+          completionItems.push(...itemsForFromExpression(soqlQueryAnalyzer, tokenIndex));
         }
         break;
 
       case SoqlParser.RULE_soqlField:
-        innerQueryInfo = soqlQueryAnalyzer.innerQueryInfoAt(tokenIndex);
-        fromSObject = innerQueryInfo?.sobjectName || DEFAULT_SOBJECT;
+        if (lastRuleId === SoqlParser.RULE_soqlSemiJoin) {
+          completionItems.push(
+            withSoqlContext(newFieldItem(SOBJECT_FIELDS_LABEL_PLACEHOLDER), {
+              ...soqlItemContext,
+              onlyTypes: ['id', 'reference'],
+              dontShowRelationshipField: true,
+            })
+          );
+        } else if (lastRuleId === SoqlParser.RULE_soqlSelectExpr) {
+          const isCursorAtFunctionExpr: boolean = isCursorAfter(tokenStream, tokenIndex, [
+            [SoqlLexer.IDENTIFIER, SoqlLexer.COUNT],
+            [SoqlLexer.LPAREN],
+          ]); // inside a function expression (i.e.: "SELECT AVG(|" )
 
-        if ([SoqlParser.RULE_soqlSelectExpr, SoqlParser.RULE_soqlSemiJoin].includes(lastRuleId)) {
-          // At the start of any "soqlField" expression (inside SELECT, ORDER BY, GROUP BY, etc.)
-          // or inside a function expression (i.e.: "AVG(|" )
-          if (
-            tokenIndex === ruleData.startTokenIndex ||
-            isCursorAfter(tokenStream, tokenIndex, [[SoqlLexer.IDENTIFIER, SoqlLexer.COUNT], [SoqlLexer.LPAREN]])
-          ) {
-            const soqlItemContext: SoqlItemContext = {
-              sobjectName: fromSObject,
-            };
-
+          // SELECT | FROM Xyz
+          if (tokenIndex === ruleData.startTokenIndex) {
+            if (isInnerQuery) {
+              completionItems.push(
+                withSoqlContext(newFieldItem(RELATIONSHIP_FIELDS_PLACEHOLDER), {
+                  ...soqlItemContext,
+                  sobjectName: parentQuerySObject || '',
+                  relationshipName,
+                })
+              );
+            } else {
+              completionItems.push(withSoqlContext(newFieldItem(SOBJECT_FIELDS_LABEL_PLACEHOLDER), soqlItemContext));
+              completionItems.push(...itemsForBuiltinFunctions);
+              completionItems.push(newSnippetItem('(SELECT ... FROM ...)', '(SELECT $2 FROM $1)'));
+            }
+          }
+          // "SELECT AVG(|"
+          else if (isCursorAtFunctionExpr) {
             // NOTE: This code would be simpler if the grammar had an explicit
-            // rule for function invocation. We should probably suggest such a change.
+            // rule for function invocation.
             // It's also more complicated because COUNT is a keyword type in the grammar,
             // and not an IDENTIFIER like all other functions
             const functionNameToken = searchTokenBeforeCursor(tokenStream, tokenIndex, [
@@ -306,17 +337,11 @@ function generateCandidatesFromRules(
             }
             completionItems.push(withSoqlContext(newFieldItem(SOBJECT_FIELDS_LABEL_PLACEHOLDER), soqlItemContext));
           }
-
-          // SELECT | FROM Xyz
-          if (tokenIndex === ruleData.startTokenIndex) {
-            completionItems.push(...itemsForBuiltinFunctions);
-            completionItems.push(newSnippetItem('(SELECT ... FROM ...)', '(SELECT $2 FROM $1)'));
-          }
         }
         // ... GROUP BY |
         else if (lastRuleId === SoqlParser.RULE_soqlGroupByExprs && tokenIndex === ruleData.startTokenIndex) {
-          const selectedFields = innerQueryInfo?.selectedFields || [];
-          const groupedByFields = (innerQueryInfo?.groupByFields || []).map((f) => f.toLowerCase());
+          const selectedFields = innermostQueryInfo?.selectedFields || [];
+          const groupedByFields = (innermostQueryInfo?.groupByFields || []).map((f) => f.toLowerCase());
           const groupFieldDifference = selectedFields.filter((f) => !groupedByFields.includes(f.toLowerCase()));
 
           completionItems.push(
@@ -324,10 +349,6 @@ function generateCandidatesFromRules(
               sobjectName: fromSObject,
               onlyGroupable: true,
               mostLikelyItems: groupFieldDifference.length > 0 ? groupFieldDifference : undefined,
-              // joinItemsAsOne:
-              //   groupFieldDifference.length > 0
-              //     ? groupFieldDifference
-              //     : undefined,
             })
           );
         }
@@ -335,10 +356,17 @@ function generateCandidatesFromRules(
         // ... ORDER BY |
         else if (lastRuleId === SoqlParser.RULE_soqlOrderByClauseField) {
           completionItems.push(
-            withSoqlContext(newFieldItem(SOBJECT_FIELDS_LABEL_PLACEHOLDER), {
-              sobjectName: fromSObject,
-              onlySortable: true,
-            })
+            isInnerQuery
+              ? withSoqlContext(newFieldItem(RELATIONSHIP_FIELDS_PLACEHOLDER), {
+                  ...soqlItemContext,
+                  sobjectName: parentQuerySObject || '',
+                  relationshipName,
+                  onlySortable: true,
+                })
+              : withSoqlContext(newFieldItem(SOBJECT_FIELDS_LABEL_PLACEHOLDER), {
+                  ...soqlItemContext,
+                  onlySortable: true,
+                })
           );
         }
 
@@ -352,8 +380,6 @@ function generateCandidatesFromRules(
           [SoqlParser.RULE_soqlWhereExpr, SoqlParser.RULE_soqlDistanceExpr].includes(lastRuleId) &&
           !ruleData.ruleList.includes(SoqlParser.RULE_soqlHavingClause)
         ) {
-          fromSObject = soqlQueryAnalyzer.innerQueryInfoAt(tokenIndex)?.sobjectName || DEFAULT_SOBJECT;
-
           completionItems.push(
             withSoqlContext(newFieldItem(SOBJECT_FIELDS_LABEL_PLACEHOLDER), {
               sobjectName: fromSObject,
@@ -375,7 +401,7 @@ function generateCandidatesFromRules(
   return completionItems;
 }
 function handleSpecialCases(
-  parsedQuery: SoqlQueryContext,
+  soqlQueryAnalyzer: SoqlQueryAnalyzer,
   tokenStream: TokenStream,
   tokenIndex: number,
   completionItems: CompletionItem[]
@@ -383,7 +409,7 @@ function handleSpecialCases(
   if (completionItems.length === 0) {
     // SELECT FROM |
     if (isCursorAfter(tokenStream, tokenIndex, [[SoqlLexer.SELECT], [SoqlLexer.FROM]])) {
-      completionItems.push(newObjectItem(SOBJECTS_ITEM_LABEL_PLACEHOLDER));
+      completionItems.push(...itemsForFromExpression(soqlQueryAnalyzer, tokenIndex));
     }
   }
 
@@ -391,6 +417,26 @@ function handleSpecialCases(
   if (completionItems.some((item) => item.label === 'SELECT')) {
     if (!isCursorBefore(tokenStream, tokenIndex, [[SoqlLexer.FROM]])) {
       completionItems.push(newSnippetItem('SELECT ... FROM ...', 'SELECT $2 FROM $1'));
+    }
+  }
+  return completionItems;
+}
+
+function itemsForFromExpression(soqlQueryAnalyzer: SoqlQueryAnalyzer, tokenIndex: number): CompletionItem[] {
+  const completionItems: CompletionItem[] = [];
+  const queryInfoStack = soqlQueryAnalyzer.queryInfosAt(tokenIndex);
+  if (queryInfoStack.length === 1 || (queryInfoStack.length > 1 && queryInfoStack[0].isSemiJoin)) {
+    completionItems.push(newObjectItem(SOBJECTS_ITEM_LABEL_PLACEHOLDER));
+  } else if (queryInfoStack.length > 1) {
+    const parentQuery = queryInfoStack[1];
+    const sobjectName = parentQuery.sobjectName;
+    if (sobjectName) {
+      // NOTE: might need to pass multiple outter SObject (nested) names ?
+      completionItems.push(
+        withSoqlContext(newObjectItem(RELATIONSHIPS_PLACEHOLDER), {
+          sobjectName,
+        })
+      );
     }
   }
   return completionItems;
@@ -457,6 +503,7 @@ function newFunctionItem(text: string): CompletionItem {
 
 export interface SoqlItemContext {
   sobjectName: string;
+  relationshipName?: string;
   fieldName?: string;
   onlyTypes?: string[];
   onlyAggregatable?: boolean;
@@ -464,7 +511,7 @@ export interface SoqlItemContext {
   onlySortable?: boolean;
   onlyNillable?: boolean;
   mostLikelyItems?: string[];
-  // joinItemsAsOne?: string[];
+  dontShowRelationshipField?: boolean;
 }
 
 function withSoqlContext(item: CompletionItem, soqlItemCtx: SoqlItemContext): CompletionItem {

@@ -34,7 +34,7 @@
     "@salesforce/prettier-config": "^0.0.2",
     "@types/debounce": "^1.2.0",
     "@types/jest": "22.2.3",
-    "@types/vscode": "1.46.0",
+    "@types/vscode": "1.49.0",
     "@typescript-eslint/eslint-plugin": "^4.17.0",
     "@typescript-eslint/parser": "^4.17.0",
     "eslint": "^7.21.0",

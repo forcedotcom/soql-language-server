@@ -54,16 +54,13 @@ export class SoqlCompletionErrorStrategy extends DefaultErrorStrategy {
    */
   protected getErrorRecoverySet(recognizer: Parser): IntervalSet {
     const defaultRecoverySet = super.getErrorRecoverySet(recognizer);
-
     if (recognizer.ruleContext.ruleIndex === SoqlParser.RULE_soqlField) {
       const soqlFieldFollowSet = new IntervalSet();
       soqlFieldFollowSet.add(SoqlLexer.COMMA);
       soqlFieldFollowSet.add(SoqlLexer.FROM);
-
       const intersection = defaultRecoverySet.and(soqlFieldFollowSet);
       if (intersection.size > 0) return intersection;
     }
-
     return defaultRecoverySet;
   }
 }
