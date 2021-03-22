@@ -2,7 +2,8 @@
 
 Provides SOQL language capabilities for text editors, including code-completion and errors checks.
 This package implements the server-side of the LSP protocol.
-VS Code extension [salesforcedx-vscode-soql](https://github.com/forcedotcom/salesforcedx-vscode/tree/develop/packages/salesforcedx-vscode-soql) includes an LSP client implementation.
+
+[Salesforce's SOQL VS Code extension](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode-soql), which lives in repo [salesforcedx-vscode](https://github.com/forcedotcom/salesforcedx-vscode), includes an LSP client implementation for this server.
 
 ## Development
 
