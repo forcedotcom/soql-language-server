@@ -1,29 +1,24 @@
 /*
- *  Copyright (c) 2020, salesforce.com, inc.
- *  All rights reserved.
- *  Licensed under the BSD 3-Clause license.
- *  For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
- *
+ * Copyright (c) 2021, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
 import { SOQLParser } from '@salesforce/soql-common/lib/soql-parser';
 import { Diagnostic, DiagnosticSeverity, Range } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
-import { RequestTypes, RunQueryResponse } from './index';
 import { Connection } from 'vscode-languageserver';
-import {
-  parseHeaderComments,
-  SoqlWithComments,
-} from '@salesforce/soql-common/lib/soqlComments';
+import { parseHeaderComments, SoqlWithComments } from '@salesforce/soql-common/lib/soqlComments';
+import { RequestTypes, RunQueryResponse } from './index';
 
 const findLimitRegex = new RegExp(/LIMIT\s+\d+\s*$/, 'i');
-const findPositionRegex = new RegExp(
-  /ERROR at Row:(?<row>\d+):Column:(?<column>\d+)/
-);
+const findPositionRegex = new RegExp(/ERROR at Row:(?<row>\d+):Column:(?<column>\d+)/);
 const findCauseRegex = new RegExp(/'(?<cause>\S+)'/);
 
 export interface RunQuerySuccessResponse {
   done: boolean;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   records: any[];
   totalSize: number;
 }
@@ -41,17 +36,13 @@ export class Validator {
       isMultiCurrencyEnabled: true,
       apiVersion: 50.0,
     });
-    const result = parser.parseQuery(
-      parseHeaderComments(textDocument.getText()).headerPaddedSoqlText
-    );
+    const result = parser.parseQuery(parseHeaderComments(textDocument.getText()).headerPaddedSoqlText);
     if (!result.getSuccess()) {
       result.getParserErrors().forEach((error) => {
         diagnostics.push({
           severity: DiagnosticSeverity.Error,
           range: {
-            start: textDocument.positionAt(
-              error.getToken()?.startIndex as number
-            ),
+            start: textDocument.positionAt(error.getToken()?.startIndex as number),
             end: textDocument.positionAt(error.getToken()?.stopIndex as number),
           },
           message: error.getMessage(),
@@ -62,22 +53,17 @@ export class Validator {
     return diagnostics;
   }
 
-  public static async validateLimit0Query(
-    textDocument: TextDocument,
-    connection: Connection
-  ) {
+  public static async validateLimit0Query(textDocument: TextDocument, connection: Connection): Promise<Diagnostic[]> {
     const diagnostics: Diagnostic[] = [];
     const soqlWithHeaderComments = parseHeaderComments(textDocument.getText());
 
-    const response = (await connection.sendRequest(
+    const response = await connection.sendRequest<RunQueryResponse>(
       RequestTypes.RunQuery,
       appendLimit0(soqlWithHeaderComments.soqlText)
-    )) as RunQueryResponse;
+    );
+
     if (response.error) {
-      const { errorMessage, errorRange } = extractErrorRange(
-        soqlWithHeaderComments,
-        response.error.message
-      );
+      const { errorMessage, errorRange } = extractErrorRange(soqlWithHeaderComments, response.error.message);
       diagnostics.push({
         severity: DiagnosticSeverity.Error,
         range: errorRange || documentRange(textDocument),
@@ -102,14 +88,12 @@ function extractErrorRange(
   soqlWithComments: SoqlWithComments,
   errorMessage: string
 ): { errorRange: Range | undefined; errorMessage: string } {
-  const posMatch = errorMessage.match(findPositionRegex);
+  const posMatch = findPositionRegex.exec(errorMessage);
   if (posMatch && posMatch.groups) {
-    const line =
-      Number(posMatch.groups.row) - 1 + soqlWithComments.commentLineCount;
+    const line = Number(posMatch.groups.row) - 1 + soqlWithComments.commentLineCount;
     const character = Number(posMatch.groups.column) - 1;
-    const causeMatch = errorMessage.match(findCauseRegex);
-    const cause =
-      (causeMatch && causeMatch.groups && causeMatch.groups.cause) || ' ';
+    const causeMatch = findCauseRegex.exec(errorMessage);
+    const cause = (causeMatch && causeMatch.groups && causeMatch.groups.cause) || ' ';
     return {
       // Strip out the line and column information from the error message
       errorMessage: errorMessage.replace(findPositionRegex, 'Error:'),
@@ -119,7 +103,7 @@ function extractErrorRange(
       },
     };
   } else {
-    return { errorMessage: errorMessage, errorRange: undefined };
+    return { errorMessage, errorRange: undefined };
   }
 }
 

@@ -1,48 +1,40 @@
 /*
- *  Copyright (c) 2020, salesforce.com, inc.
- *  All rights reserved.
- *  Licensed under the BSD 3-Clause license.
- *  For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
- *
+ * Copyright (c) 2021, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import {
-  Validator,
-  RunQueryErrorResponse,
-  RunQuerySuccessResponse,
-} from './validator';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { Connection } from 'vscode-languageserver';
+import { Validator, RunQueryErrorResponse, RunQuerySuccessResponse } from './validator';
 
 function mockSOQLDoc(content: string): TextDocument {
   return TextDocument.create('some-uri', 'soql', 0.1, content);
 }
 
 function createMockClientConnection(
-  response:
-    | { result: RunQuerySuccessResponse }
-    | { error: RunQueryErrorResponse }
+  response: { result: RunQuerySuccessResponse } | { error: RunQueryErrorResponse }
 ): Connection {
   return {
     // @ts-expect-error: just for testing
-    async sendRequest(method: string, params: any) {
-      return response;
-    },
+    sendRequest: (
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      method: string,
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars,@typescript-eslint/no-explicit-any
+      params: any
+    ): { result: RunQuerySuccessResponse } | { error: RunQueryErrorResponse } => response,
   };
 }
 
 describe('Validator', () => {
   describe('validateSoqlText', () => {
     it('empty diagnostics for a valid SOQL query', () => {
-      const diagnostics = Validator.validateSoqlText(
-        mockSOQLDoc('SeLeCt Id FrOm Account Ac')
-      );
+      const diagnostics = Validator.validateSoqlText(mockSOQLDoc('SeLeCt Id FrOm Account Ac'));
       expect(diagnostics.length).toEqual(0);
     });
     it('populated diagnostics for a SOQL query with errors', () => {
-      const diagnostics = Validator.validateSoqlText(
-        mockSOQLDoc('SeLeCt Id FrOm')
-      );
+      const diagnostics = Validator.validateSoqlText(mockSOQLDoc('SeLeCt Id FrOm'));
       expect(diagnostics.length).toEqual(1);
     });
   });
@@ -63,8 +55,8 @@ describe('Validator', () => {
     });
 
     it('creates diagnostic with range when location and cause are returned from API', async () => {
-      const serverError = `Oh Snap!\nERROR at Row:1:Column:8\nBlame 'Ids' not 'Me'`;
-      const expectedErrorWithoutLineColumn = `Oh Snap!\nError:\nBlame 'Ids' not 'Me'`;
+      const serverError = "Oh Snap!\nERROR at Row:1:Column:8\nBlame 'Ids' not 'Me'";
+      const expectedErrorWithoutLineColumn = "Oh Snap!\nError:\nBlame 'Ids' not 'Me'";
       const diagnostics = await Validator.validateLimit0Query(
         mockSOQLDoc('SELECT Ids FROM Account'),
         createMockClientConnection({
@@ -89,8 +81,8 @@ describe('Validator', () => {
       async () => {
         // The Query API seems to be "ignoring" the initial empty lines, so
         // it reports the error lines as starting from the first non-empty line
-        const serverError = `Oh Snap!\nERROR at Row:1:Column:8\nBlame 'Ids' not 'Me'`;
-        const expectedErrorWithoutLineColumn = `Oh Snap!\nError:\nBlame 'Ids' not 'Me'`;
+        const serverError = "Oh Snap!\nERROR at Row:1:Column:8\nBlame 'Ids' not 'Me'";
+        const expectedErrorWithoutLineColumn = "Oh Snap!\nError:\nBlame 'Ids' not 'Me'";
         const diagnostics = await Validator.validateLimit0Query(
           mockSOQLDoc('\n\n// Comment here\n\nSELECT Ids FROM Account'),
           createMockClientConnection({
@@ -116,7 +108,7 @@ describe('Validator', () => {
     );
 
     it('creates diagnostic with full doc range when location is not found', async () => {
-      const expectedError = `Oh Snap!`;
+      const expectedError = 'Oh Snap!';
       const diagnostics = await Validator.validateLimit0Query(
         mockSOQLDoc('SELECT Id\nFROM Accounts'),
         createMockClientConnection({
@@ -136,7 +128,7 @@ describe('Validator', () => {
     });
 
     it('creates diagnostic message for errorCode INVALID_TYPE', async () => {
-      const expectedError = `Oh Snap!`;
+      const expectedError = 'Oh Snap!';
       const diagnostics = await Validator.validateLimit0Query(
         mockSOQLDoc('SELECT Id\nFROM Accounts'),
         createMockClientConnection({

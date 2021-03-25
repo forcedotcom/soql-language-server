@@ -1,9 +1,8 @@
 /*
- *  Copyright (c) 2020, salesforce.com, inc.
- *  All rights reserved.
- *  Licensed under the BSD 3-Clause license.
- *  For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
- *
+ * Copyright (c) 2021, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
 import {
@@ -18,7 +17,6 @@ import {
   TextDocumentPositionParams,
   CompletionItem,
 } from 'vscode-languageserver';
-import { debounce } from 'debounce';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { Validator } from './validator';
 import QueryValidationFeature from './query-validation-feature';
@@ -34,9 +32,7 @@ let runQueryValidation: boolean;
 const documents: TextDocuments<TextDocument> = new TextDocuments(TextDocument);
 
 connection.onInitialize((params: InitializeParams) => {
-  runQueryValidation = QueryValidationFeature.hasRunQueryValidation(
-    params.capabilities
-  );
+  runQueryValidation = QueryValidationFeature.hasRunQueryValidation(params.capabilities);
   connection.console.log(`runQueryValidation: ${runQueryValidation}`);
   const result: InitializeResult = {
     capabilities: {
@@ -60,30 +56,20 @@ documents.onDidChangeContent(async (change) => {
   }
 });
 
-const debounceValidateLimit0Query = debounce(runValidateLimit0Query, 1000);
-
-async function runValidateLimit0Query(
-  change: TextDocumentChangeEvent<TextDocument>
-) {
+async function runValidateLimit0Query(change: TextDocumentChangeEvent<TextDocument>): Promise<void> {
   connection.console.log(`validate SOQL query:\n${change.document.getText()}`);
   let diagnostics: Diagnostic[] = [];
-  diagnostics = await Validator.validateLimit0Query(
-    change.document,
-    connection
-  );
+  diagnostics = await Validator.validateLimit0Query(change.document, connection);
   connection.sendDiagnostics({ uri: change.document.uri, diagnostics });
 }
 
 connection.onCompletion(
+  // eslint-disable-next-line @typescript-eslint/require-await
   async (request: TextDocumentPositionParams): Promise<CompletionItem[]> => {
     const doc = documents.get(request.textDocument.uri);
     if (!doc) return [];
 
-    return completionsFor(
-      doc.getText(),
-      request.position.line + 1,
-      request.position.character + 1
-    );
+    return completionsFor(doc.getText(), request.position.line + 1, request.position.character + 1);
   }
 );
 
