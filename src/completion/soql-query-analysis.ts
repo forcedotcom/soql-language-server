@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2021, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
 import {
   SoqlFromExprsContext,
   SoqlGroupByExprsContext,
@@ -6,9 +12,8 @@ import {
   SoqlQueryContext,
   SoqlSelectColumnExprContext,
   SoqlSemiJoinContext,
-  SoqlWhereExprContext,
 } from '@salesforce/soql-common/lib/soql-parser/generated/SoqlParser';
-import { ParserRuleContext, RuleContext, Token } from 'antlr4ts';
+import { ParserRuleContext, Token } from 'antlr4ts';
 import { ParseTreeWalker, RuleNode } from 'antlr4ts/tree';
 import { SoqlParserListener } from '@salesforce/soql-common/lib/soql-parser/generated/SoqlParserListener';
 
@@ -28,29 +33,20 @@ export interface ParsedSoqlField {
 }
 export class SoqlQueryAnalyzer {
   private innerQueriesListener = new SoqlInnerQueriesListener();
-  constructor(protected parsedQueryTree: SoqlQueryContext) {
-    ParseTreeWalker.DEFAULT.walk<SoqlParserListener>(
-      this.innerQueriesListener,
-      parsedQueryTree
-    );
+  public constructor(protected parsedQueryTree: SoqlQueryContext) {
+    ParseTreeWalker.DEFAULT.walk<SoqlParserListener>(this.innerQueriesListener, parsedQueryTree);
   }
 
-  innerQueryInfoAt(cursorTokenIndex: number): InnerSoqlQueryInfo | undefined {
+  public innerQueryInfoAt(cursorTokenIndex: number): InnerSoqlQueryInfo | undefined {
     return this.innerQueriesListener.findInnerQuery(cursorTokenIndex);
   }
 
-  extractWhereField(cursorTokenIndex: number): ParsedSoqlField | undefined {
+  public extractWhereField(cursorTokenIndex: number): ParsedSoqlField | undefined {
     const sobject = this.innerQueryInfoAt(cursorTokenIndex)?.sobjectName;
 
     if (sobject) {
-      const whereFieldListener = new SoqlWhereFieldListener(
-        cursorTokenIndex,
-        sobject
-      );
-      ParseTreeWalker.DEFAULT.walk<SoqlParserListener>(
-        whereFieldListener,
-        this.parsedQueryTree
-      );
+      const whereFieldListener = new SoqlWhereFieldListener(cursorTokenIndex, sobject);
+      ParseTreeWalker.DEFAULT.walk<SoqlParserListener>(whereFieldListener, this.parsedQueryTree);
       return whereFieldListener.result;
     } else {
       return undefined;
@@ -58,31 +54,9 @@ export class SoqlQueryAnalyzer {
   }
 }
 
+/* eslint-disable @typescript-eslint/member-ordering */
 class SoqlInnerQueriesListener implements SoqlParserListener {
-  selectsStack: Token[] = [];
-  fromsStack: Array<[Token, string]> = [];
-
-  matchedSelectFroms: Array<InnerSoqlQueryInfo> = [];
-  innerSoqlQueries = new Map<number, InnerSoqlQueryInfo>();
-
-  private queryContainsTokenIndex(
-    innerQuery: InnerSoqlQueryInfo,
-    atTokenIndex: number
-  ): boolean {
-    // NOTE: We use the parent node to take into account the enclosing
-    // parentheses (in the case of inner SELECTs), and the whole text until EOF
-    // (for the top-level SELECT). BTW: soqlInnerQueryNode always has a parent.
-    const queryNode = innerQuery.soqlInnerQueryNode.parent
-      ? innerQuery.soqlInnerQueryNode.parent
-      : innerQuery.soqlInnerQueryNode;
-
-    const startIndex = queryNode.start.tokenIndex;
-    const stopIndex = queryNode.stop?.tokenIndex;
-
-    return (
-      atTokenIndex > startIndex && !!stopIndex && atTokenIndex <= stopIndex
-    );
-  }
+  private innerSoqlQueries = new Map<number, InnerSoqlQueryInfo>();
 
   public findInnerQuery(atIndex: number): InnerSoqlQueryInfo | undefined {
     let closestQuery: InnerSoqlQueryInfo | undefined;
@@ -94,50 +68,56 @@ class SoqlInnerQueriesListener implements SoqlParserListener {
     return closestQuery;
   }
 
-  private findAncestorSoqlInnerQueryContext(
-    node: RuleNode | undefined
-  ): ParserRuleContext | undefined {
+  private queryContainsTokenIndex(innerQuery: InnerSoqlQueryInfo, atTokenIndex: number): boolean {
+    // NOTE: We use the parent node to take into account the enclosing
+    // parentheses (in the case of inner SELECTs), and the whole text until EOF
+    // (for the top-level SELECT). BTW: soqlInnerQueryNode always has a parent.
+    const queryNode = innerQuery.soqlInnerQueryNode.parent
+      ? innerQuery.soqlInnerQueryNode.parent
+      : innerQuery.soqlInnerQueryNode;
+
+    const startIndex = queryNode.start.tokenIndex;
+    const stopIndex = queryNode.stop?.tokenIndex;
+
+    return atTokenIndex > startIndex && !!stopIndex && atTokenIndex <= stopIndex;
+  }
+
+  private findAncestorSoqlInnerQueryContext(node: RuleNode | undefined): ParserRuleContext | undefined {
     let soqlInnerQueryNode = node;
     while (
       soqlInnerQueryNode &&
-      ![SoqlParser.RULE_soqlInnerQuery, SoqlParser.RULE_soqlSemiJoin].includes(
-        soqlInnerQueryNode.ruleContext.ruleIndex
-      )
+      ![SoqlParser.RULE_soqlInnerQuery, SoqlParser.RULE_soqlSemiJoin].includes(soqlInnerQueryNode.ruleContext.ruleIndex)
     ) {
       soqlInnerQueryNode = soqlInnerQueryNode.parent;
     }
 
-    return soqlInnerQueryNode
-      ? (soqlInnerQueryNode as ParserRuleContext)
-      : undefined;
+    return soqlInnerQueryNode ? (soqlInnerQueryNode as ParserRuleContext) : undefined;
   }
 
   private innerQueryForContext(ctx: RuleNode): InnerSoqlQueryInfo | undefined {
     const soqlInnerQueryNode = this.findAncestorSoqlInnerQueryContext(ctx);
     if (soqlInnerQueryNode) {
-      const selectFromPair = this.innerSoqlQueries.get(
-        soqlInnerQueryNode.start.tokenIndex
-      );
+      const selectFromPair = this.innerSoqlQueries.get(soqlInnerQueryNode.start.tokenIndex);
       return selectFromPair;
     }
     return undefined;
   }
 
-  enterSoqlInnerQuery(ctx: SoqlInnerQueryContext) {
+  public enterSoqlInnerQuery(ctx: SoqlInnerQueryContext): void {
     this.innerSoqlQueries.set(ctx.start.tokenIndex, {
       select: ctx.start,
       soqlInnerQueryNode: ctx,
     });
   }
 
-  enterSoqlSemiJoin(ctx: SoqlSemiJoinContext) {
+  public enterSoqlSemiJoin(ctx: SoqlSemiJoinContext): void {
     this.innerSoqlQueries.set(ctx.start.tokenIndex, {
       select: ctx.start,
       soqlInnerQueryNode: ctx,
     });
   }
 
-  exitSoqlFromExprs(ctx: SoqlFromExprsContext) {
+  public exitSoqlFromExprs(ctx: SoqlFromExprsContext): void {
     const selectFromPair = this.innerQueryForContext(ctx);
 
     if (ctx.children && ctx.children.length > 0 && selectFromPair) {
@@ -148,7 +128,7 @@ class SoqlInnerQueriesListener implements SoqlParserListener {
     }
   }
 
-  enterSoqlSelectColumnExpr(ctx: SoqlSelectColumnExprContext) {
+  public enterSoqlSelectColumnExpr(ctx: SoqlSelectColumnExprContext): void {
     if (ctx.soqlField().childCount === 1) {
       const soqlField = ctx.soqlField();
       const soqlIdentifiers = soqlField.soqlIdentifier();
@@ -164,7 +144,7 @@ class SoqlInnerQueriesListener implements SoqlParserListener {
     }
   }
 
-  enterSoqlGroupByExprs(ctx: SoqlGroupByExprsContext) {
+  public enterSoqlGroupByExprs(ctx: SoqlGroupByExprsContext): void {
     const groupByFields: string[] = [];
 
     ctx.soqlField().forEach((soqlField) => {
@@ -185,15 +165,12 @@ class SoqlInnerQueriesListener implements SoqlParserListener {
 }
 
 class SoqlWhereFieldListener implements SoqlParserListener {
-  result?: ParsedSoqlField;
-  resultDistance = Number.MAX_VALUE;
+  private resultDistance = Number.MAX_VALUE;
+  public result?: ParsedSoqlField;
 
-  constructor(
-    private readonly cursorTokenIndex: number,
-    private sobject: string
-  ) {}
+  public constructor(private readonly cursorTokenIndex: number, private sobject: string) {}
 
-  enterEveryRule(ctx: ParserRuleContext) {
+  public enterEveryRule(ctx: ParserRuleContext): void {
     if (ctx.ruleContext.ruleIndex === SoqlParser.RULE_soqlWhereExpr) {
       if (ctx.start.tokenIndex <= this.cursorTokenIndex) {
         const distance = this.cursorTokenIndex - ctx.start.tokenIndex;
@@ -208,13 +185,12 @@ class SoqlWhereFieldListener implements SoqlParserListener {
             fieldComponents.shift();
           }
 
-          const operator =
-            ctx.childCount > 2 ? ctx.getChild(1).text : undefined;
+          const operator = ctx.childCount > 2 ? ctx.getChild(1).text : undefined;
 
           this.result = {
             sobjectName: this.sobject,
             fieldName: fieldComponents.join('.'),
-            operator: operator,
+            operator,
           };
         }
       }

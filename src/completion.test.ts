@@ -1,35 +1,27 @@
 /*
- *  Copyright (c) 2020, salesforce.com, inc.
- *  All rights reserved.
- *  Licensed under the BSD 3-Clause license.
- *  For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
- *
+ * Copyright (c) 2021, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { CompletionItem, CompletionItemKind, InsertTextFormat } from 'vscode-languageserver';
 import { completionsFor, SoqlItemContext } from './completion';
-import {
-  CompletionItem,
-  CompletionItemKind,
-  InsertTextFormat,
-} from 'vscode-languageserver';
-import {
-  soqlDateRangeLiterals,
-  soqlParametricDateRangeLiterals,
-} from './completion/soql-functions';
+import { soqlDateRangeLiterals, soqlParametricDateRangeLiterals } from './completion/soql-functions';
 
-const SELECT_snippet = {
+const SELECT_SNIPPET = {
   kind: CompletionItemKind.Snippet,
   label: 'SELECT ... FROM ...',
   insertText: 'SELECT $2 FROM $1',
   insertTextFormat: InsertTextFormat.Snippet,
 };
-const INNER_SELECT_snippet = {
+const INNER_SELECT_SNIPPET = {
   kind: CompletionItemKind.Snippet,
   label: '(SELECT ... FROM ...)',
   insertText: '(SELECT $2 FROM $1)',
   insertTextFormat: InsertTextFormat.Snippet,
 };
 
-const typesForLT_GT_operators = [
+const typesForLTGTOperators = [
   'anyType',
   'complexvalue',
   'currency',
@@ -46,10 +38,10 @@ const typesForLT_GT_operators = [
 const expectedSoqlContextByKeyword: {
   [key: string]: Partial<SoqlItemContext>;
 } = {
-  '<': { onlyTypes: typesForLT_GT_operators },
-  '<=': { onlyTypes: typesForLT_GT_operators },
-  '>': { onlyTypes: typesForLT_GT_operators },
-  '>=': { onlyTypes: typesForLT_GT_operators },
+  '<': { onlyTypes: typesForLTGTOperators },
+  '<=': { onlyTypes: typesForLTGTOperators },
+  '>': { onlyTypes: typesForLTGTOperators },
+  '>=': { onlyTypes: typesForLTGTOperators },
   'INCLUDES (': { onlyTypes: ['multipicklist'] },
   'EXCLUDES (': { onlyTypes: ['multipicklist'] },
   LIKE: { onlyTypes: ['string', 'textarea', 'time'] },
@@ -62,76 +54,41 @@ function newLiteralItem(
   extraOptions: Partial<CompletionItem> = {}
 ): CompletionItem {
   return {
-    label: label,
-    kind: kind,
+    label,
+    kind,
     ...extraOptions,
     data: {
       soqlContext: soqlItemContext,
     },
   };
 }
-function expectedItemsForLiterals(
-  soqlContext: SoqlItemContext,
-  nillableOperator: boolean
-): CompletionItem[] {
+function expectedItemsForLiterals(soqlContext: SoqlItemContext, nillableOperator: boolean): CompletionItem[] {
   const items: CompletionItem[] = [
-    newLiteralItem(
-      soqlContext,
-      CompletionItemKind.Constant,
-      '__LITERAL_VALUES_FOR_FIELD'
-    ),
-    newLiteralItem(
-      { ...soqlContext, ...{ onlyTypes: ['boolean'] } },
-      CompletionItemKind.Value,
-      'TRUE'
-    ),
-    newLiteralItem(
-      { ...soqlContext, ...{ onlyTypes: ['boolean'] } },
-      CompletionItemKind.Value,
-      'FALSE'
-    ),
-    newLiteralItem(
-      { ...soqlContext, ...{ onlyTypes: ['int'] } },
-      CompletionItemKind.Snippet,
-      'nnn',
-      { insertText: '${1:123}', insertTextFormat: InsertTextFormat.Snippet }
-    ),
-    newLiteralItem(
-      { ...soqlContext, ...{ onlyTypes: ['double'] } },
-      CompletionItemKind.Snippet,
-      'nnn.nnn',
-      { insertText: '${1:123.456}', insertTextFormat: InsertTextFormat.Snippet }
-    ),
-    newLiteralItem(
-      { ...soqlContext, ...{ onlyTypes: ['currency'] } },
-      CompletionItemKind.Snippet,
-      'ISOCODEnnn.nn',
-      {
-        insertText: '${1|USD,EUR,JPY,CNY,CHF|}${2:999.99}',
-        insertTextFormat: InsertTextFormat.Snippet,
-      }
-    ),
-    newLiteralItem(
-      { ...soqlContext, ...{ onlyTypes: ['string'] } },
-      CompletionItemKind.Snippet,
-      'abc123',
-      {
-        insertText: "'${1:abc123}'",
-        insertTextFormat: InsertTextFormat.Snippet,
-      }
-    ),
-    newLiteralItem(
-      { ...soqlContext, ...{ onlyTypes: ['date'] } },
-      CompletionItemKind.Snippet,
-      'YYYY-MM-DD',
-      {
-        insertText:
-          '${1:${CURRENT_YEAR}}-${2:${CURRENT_MONTH}}-${3:${CURRENT_DATE}}$0',
-        insertTextFormat: InsertTextFormat.Snippet,
-        preselect: true,
-        sortText: ' YYYY-MM-DD',
-      }
-    ),
+    newLiteralItem(soqlContext, CompletionItemKind.Constant, '__LITERAL_VALUES_FOR_FIELD'),
+    newLiteralItem({ ...soqlContext, ...{ onlyTypes: ['boolean'] } }, CompletionItemKind.Value, 'TRUE'),
+    newLiteralItem({ ...soqlContext, ...{ onlyTypes: ['boolean'] } }, CompletionItemKind.Value, 'FALSE'),
+    newLiteralItem({ ...soqlContext, ...{ onlyTypes: ['int'] } }, CompletionItemKind.Snippet, 'nnn', {
+      insertText: '${1:123}',
+      insertTextFormat: InsertTextFormat.Snippet,
+    }),
+    newLiteralItem({ ...soqlContext, ...{ onlyTypes: ['double'] } }, CompletionItemKind.Snippet, 'nnn.nnn', {
+      insertText: '${1:123.456}',
+      insertTextFormat: InsertTextFormat.Snippet,
+    }),
+    newLiteralItem({ ...soqlContext, ...{ onlyTypes: ['currency'] } }, CompletionItemKind.Snippet, 'ISOCODEnnn.nn', {
+      insertText: '${1|USD,EUR,JPY,CNY,CHF|}${2:999.99}',
+      insertTextFormat: InsertTextFormat.Snippet,
+    }),
+    newLiteralItem({ ...soqlContext, ...{ onlyTypes: ['string'] } }, CompletionItemKind.Snippet, 'abc123', {
+      insertText: "'${1:abc123}'",
+      insertTextFormat: InsertTextFormat.Snippet,
+    }),
+    newLiteralItem({ ...soqlContext, ...{ onlyTypes: ['date'] } }, CompletionItemKind.Snippet, 'YYYY-MM-DD', {
+      insertText: '${1:${CURRENT_YEAR}}-${2:${CURRENT_MONTH}}-${3:${CURRENT_DATE}}$0',
+      insertTextFormat: InsertTextFormat.Snippet,
+      preselect: true,
+      sortText: ' YYYY-MM-DD',
+    }),
     newLiteralItem(
       { ...soqlContext, ...{ onlyTypes: ['datetime'] } },
       CompletionItemKind.Snippet,
@@ -145,42 +102,24 @@ function expectedItemsForLiterals(
       }
     ),
     ...soqlDateRangeLiterals.map((k) =>
-      newLiteralItem(
-        { ...soqlContext, ...{ onlyTypes: ['date', 'datetime'] } },
-        CompletionItemKind.Value,
-        k
-      )
+      newLiteralItem({ ...soqlContext, ...{ onlyTypes: ['date', 'datetime'] } }, CompletionItemKind.Value, k)
     ),
     ...soqlParametricDateRangeLiterals.map((k) =>
-      newLiteralItem(
-        { ...soqlContext, ...{ onlyTypes: ['date', 'datetime'] } },
-        CompletionItemKind.Snippet,
-        k,
-        {
-          insertText: k.replace(':n', ':${1:nn}') + '$0',
-          insertTextFormat: InsertTextFormat.Snippet,
-        }
-      )
+      newLiteralItem({ ...soqlContext, ...{ onlyTypes: ['date', 'datetime'] } }, CompletionItemKind.Snippet, k, {
+        insertText: k.replace(':n', ':${1:nn}') + '$0',
+        insertTextFormat: InsertTextFormat.Snippet,
+      })
     ),
   ];
 
   if (nillableOperator) {
-    items.push(
-      newLiteralItem(
-        { ...soqlContext, ...{ onlyNillable: true } },
-        CompletionItemKind.Keyword,
-        'NULL'
-      )
-    );
+    items.push(newLiteralItem({ ...soqlContext, ...{ onlyNillable: true } }, CompletionItemKind.Keyword, 'NULL'));
   }
 
   return items;
 }
 
-function newKeywordItem(
-  word: string,
-  extraOptions: Partial<CompletionItem> = {}
-): CompletionItem {
+function newKeywordItem(word: string, extraOptions: Partial<CompletionItem> = {}): CompletionItem {
   return Object.assign(
     {
       kind: CompletionItemKind.Keyword,
@@ -197,25 +136,21 @@ function newKeywordItems(...words: string[]): CompletionItem[] {
   }));
 }
 
-function newKeywordItemsWithContext(
-  sobjectName: string,
-  fieldName: string,
-  words: string[]
-): CompletionItem[] {
+function newKeywordItemsWithContext(sobjectName: string, fieldName: string, words: string[]): CompletionItem[] {
   return words.map((s) => ({
     kind: CompletionItemKind.Keyword,
     label: s,
     data: {
       soqlContext: {
-        sobjectName: sobjectName,
-        fieldName: fieldName,
+        sobjectName,
+        fieldName,
         ...expectedSoqlContextByKeyword[s],
       },
     },
   }));
 }
 
-function newFunctionCallItem(name: string, soqlItemContext?: SoqlItemContext) {
+function newFunctionCallItem(name: string, soqlItemContext?: SoqlItemContext): CompletionItem {
   return Object.assign(
     {
       kind: CompletionItemKind.Function,
@@ -240,38 +175,20 @@ describe('Code Completion on invalid cursor position', () => {
 });
 
 describe('Code Completion on SELECT ...', () => {
-  validateCompletionsFor('|', [newKeywordItem('SELECT'), SELECT_snippet]);
-  validateCompletionsFor('SELE|', [
-    ...newKeywordItems('SELECT'),
-    SELECT_snippet,
-  ]);
+  validateCompletionsFor('|', [newKeywordItem('SELECT'), SELECT_SNIPPET]);
+  validateCompletionsFor('SELE|', [...newKeywordItems('SELECT'), SELECT_SNIPPET]);
   validateCompletionsFor('| FROM', newKeywordItems('SELECT'));
   validateCompletionsFor('SELECT|', []);
 
   // "COUNT()" can only be used on its own, unlike "COUNT(fieldName)".
   // So we expect it on completions only right after "SELECT"
-  validateCompletionsFor('SELECT |', [
-    newKeywordItem('COUNT()'),
-    ...sobjectsFieldsFor('Object'),
-  ]);
-  validateCompletionsFor('SELECT\n|', [
-    newKeywordItem('COUNT()'),
-    ...sobjectsFieldsFor('Object'),
-  ]);
-  validateCompletionsFor('SELECT\n |', [
-    newKeywordItem('COUNT()'),
-    ...sobjectsFieldsFor('Object'),
-  ]);
-  validateCompletionsFor('SELECT\n\n |\n\n', [
-    newKeywordItem('COUNT()'),
-    ...sobjectsFieldsFor('Object'),
-  ]);
+  validateCompletionsFor('SELECT |', [newKeywordItem('COUNT()'), ...sobjectsFieldsFor('Object')]);
+  validateCompletionsFor('SELECT\n|', [newKeywordItem('COUNT()'), ...sobjectsFieldsFor('Object')]);
+  validateCompletionsFor('SELECT\n |', [newKeywordItem('COUNT()'), ...sobjectsFieldsFor('Object')]);
+  validateCompletionsFor('SELECT\n\n |\n\n', [newKeywordItem('COUNT()'), ...sobjectsFieldsFor('Object')]);
   validateCompletionsFor('SELECT id, |', sobjectsFieldsFor('Object'));
   validateCompletionsFor('SELECT id, boo,|', sobjectsFieldsFor('Object'));
-  validateCompletionsFor('SELECT id|', [
-    newKeywordItem('COUNT()'),
-    ...sobjectsFieldsFor('Object'),
-  ]);
+  validateCompletionsFor('SELECT id|', [newKeywordItem('COUNT()'), ...sobjectsFieldsFor('Object')]);
   validateCompletionsFor('SELECT id |', newKeywordItems('FROM'));
   validateCompletionsFor('SELECT COUNT() |', newKeywordItems('FROM'));
   validateCompletionsFor('SELECT COUNT(), |', []);
@@ -313,48 +230,21 @@ describe('Code Completion on SELECT ...', () => {
 describe('Code Completion on select fields: SELECT ... FROM XYZ', () => {
   // "COUNT()" can only be used on its own, unlike "COUNT(fieldName)".
   // So we expect it on completions only right after "SELECT"
-  validateCompletionsFor('SELECT | FROM Object', [
-    newKeywordItem('COUNT()'),
-    ...sobjectsFieldsFor('Object'),
-  ]);
-  validateCompletionsFor('SELECT | FROM Foo', [
-    newKeywordItem('COUNT()'),
-    ...sobjectsFieldsFor('Foo'),
-  ]);
-  validateCompletionsFor('SELECT |FROM Object', [
-    newKeywordItem('COUNT()'),
-    ...sobjectsFieldsFor('Object'),
-  ]);
-  validateCompletionsFor('SELECT |FROM Foo', [
-    newKeywordItem('COUNT()'),
-    ...sobjectsFieldsFor('Foo'),
-  ]);
-  validateCompletionsFor('SELECT | FROM Foo, Bar', [
-    newKeywordItem('COUNT()'),
-    ...sobjectsFieldsFor('Foo'),
-  ]);
+  validateCompletionsFor('SELECT | FROM Object', [newKeywordItem('COUNT()'), ...sobjectsFieldsFor('Object')]);
+  validateCompletionsFor('SELECT | FROM Foo', [newKeywordItem('COUNT()'), ...sobjectsFieldsFor('Foo')]);
+  validateCompletionsFor('SELECT |FROM Object', [newKeywordItem('COUNT()'), ...sobjectsFieldsFor('Object')]);
+  validateCompletionsFor('SELECT |FROM Foo', [newKeywordItem('COUNT()'), ...sobjectsFieldsFor('Foo')]);
+  validateCompletionsFor('SELECT | FROM Foo, Bar', [newKeywordItem('COUNT()'), ...sobjectsFieldsFor('Foo')]);
   validateCompletionsFor('SELECT id, | FROM Foo', sobjectsFieldsFor('Foo'));
   validateCompletionsFor('SELECT id,| FROM Foo', sobjectsFieldsFor('Foo'));
-  validateCompletionsFor('SELECT |, id FROM Foo', [
-    newKeywordItem('COUNT()'),
-    ...sobjectsFieldsFor('Foo'),
-  ]);
-  validateCompletionsFor('SELECT |, id, FROM Foo', [
-    newKeywordItem('COUNT()'),
-    ...sobjectsFieldsFor('Foo'),
-  ]);
+  validateCompletionsFor('SELECT |, id FROM Foo', [newKeywordItem('COUNT()'), ...sobjectsFieldsFor('Foo')]);
+  validateCompletionsFor('SELECT |, id, FROM Foo', [newKeywordItem('COUNT()'), ...sobjectsFieldsFor('Foo')]);
   validateCompletionsFor('SELECT id,| FROM', sobjectsFieldsFor('Object'));
 
   // with alias
   validateCompletionsFor('SELECT id,| FROM Foo F', sobjectsFieldsFor('Foo'));
-  validateCompletionsFor('SELECT |, id FROM Foo F', [
-    newKeywordItem('COUNT()'),
-    ...sobjectsFieldsFor('Foo'),
-  ]);
-  validateCompletionsFor('SELECT |, id, FROM Foo F', [
-    newKeywordItem('COUNT()'),
-    ...sobjectsFieldsFor('Foo'),
-  ]);
+  validateCompletionsFor('SELECT |, id FROM Foo F', [newKeywordItem('COUNT()'), ...sobjectsFieldsFor('Foo')]);
+  validateCompletionsFor('SELECT |, id, FROM Foo F', [newKeywordItem('COUNT()'), ...sobjectsFieldsFor('Foo')]);
 });
 
 describe('Code Completion on nested select fields: SELECT ... FROM XYZ', () => {
@@ -364,18 +254,9 @@ describe('Code Completion on nested select fields: SELECT ... FROM XYZ', () => {
     newKeywordItem('COUNT()'),
     ...sobjectsFieldsFor('Foo'),
   ]);
-  validateCompletionsFor(
-    'SELECT (SELECT bar FROM Bar),| FROM Foo',
-    sobjectsFieldsFor('Foo')
-  );
-  validateCompletionsFor(
-    'SELECT (SELECT bar FROM Bar), | FROM Foo',
-    sobjectsFieldsFor('Foo')
-  );
-  validateCompletionsFor(
-    'SELECT id, | (SELECT bar FROM Bar) FROM Foo',
-    sobjectsFieldsFor('Foo')
-  );
+  validateCompletionsFor('SELECT (SELECT bar FROM Bar),| FROM Foo', sobjectsFieldsFor('Foo'));
+  validateCompletionsFor('SELECT (SELECT bar FROM Bar), | FROM Foo', sobjectsFieldsFor('Foo'));
+  validateCompletionsFor('SELECT id, | (SELECT bar FROM Bar) FROM Foo', sobjectsFieldsFor('Foo'));
   validateCompletionsFor('SELECT foo, (SELECT | FROM Bar) FROM Foo', [
     newKeywordItem('COUNT()'),
     ...sobjectsFieldsFor('Bar'),
@@ -384,54 +265,38 @@ describe('Code Completion on nested select fields: SELECT ... FROM XYZ', () => {
     newKeywordItem('COUNT()'),
     ...sobjectsFieldsFor('Bar'),
   ]);
-  validateCompletionsFor(
-    'SELECT foo, (SELECT bar, | FROM Bar) FROM Foo',
-    sobjectsFieldsFor('Bar')
-  );
-  validateCompletionsFor(
-    'SELECT foo, (SELECT bar, (SELECT | FROM XYZ) FROM Bar) FROM Foo',
-    [...newKeywordItems('COUNT()'), ...sobjectsFieldsFor('XYZ')]
-  );
-  validateCompletionsFor(
-    'SELECT foo, (SELECT |, (SELECT xyz FROM XYZ) FROM Bar) FROM Foo',
-    [newKeywordItem('COUNT()'), ...sobjectsFieldsFor('Bar')]
-  );
-  validateCompletionsFor(
-    'SELECT | (SELECT bar, (SELECT xyz FROM XYZ) FROM Bar) FROM Foo',
-    [newKeywordItem('COUNT()'), ...sobjectsFieldsFor('Foo')]
-  );
-
-  validateCompletionsFor('SELECT (SELECT |) FROM Foo', [
-    newKeywordItem('COUNT()'),
-    ...sobjectsFieldsFor('Object'),
+  validateCompletionsFor('SELECT foo, (SELECT bar, | FROM Bar) FROM Foo', sobjectsFieldsFor('Bar'));
+  validateCompletionsFor('SELECT foo, (SELECT bar, (SELECT | FROM XYZ) FROM Bar) FROM Foo', [
+    ...newKeywordItems('COUNT()'),
+    ...sobjectsFieldsFor('XYZ'),
   ]);
+  validateCompletionsFor('SELECT foo, (SELECT |, (SELECT xyz FROM XYZ) FROM Bar) FROM Foo', [
+    newKeywordItem('COUNT()'),
+    ...sobjectsFieldsFor('Bar'),
+  ]);
+  validateCompletionsFor('SELECT | (SELECT bar, (SELECT xyz FROM XYZ) FROM Bar) FROM Foo', [
+    newKeywordItem('COUNT()'),
+    ...sobjectsFieldsFor('Foo'),
+  ]);
+
+  validateCompletionsFor('SELECT (SELECT |) FROM Foo', [newKeywordItem('COUNT()'), ...sobjectsFieldsFor('Object')]);
 
   // We used to have special code just to handle this particular case.
   // Not worth it, that's why it's skipped now.
   // We keep the test here because it'd be nice to solve it in a generic way
-  validateCompletionsFor(
-    'SELECT (SELECT ), | FROM Foo',
-    sobjectsFieldsFor('Foo'),
-    { skip: true }
-  );
+  validateCompletionsFor('SELECT (SELECT ), | FROM Foo', sobjectsFieldsFor('Foo'), { skip: true });
 
   validateCompletionsFor('SELECT foo, ( | FROM Foo', newKeywordItems('SELECT'));
   validateCompletionsFor('SELECT foo, ( |FROM Foo', newKeywordItems('SELECT'));
   validateCompletionsFor('SELECT foo, (| FROM Foo', newKeywordItems('SELECT'));
-  validateCompletionsFor(
-    'SELECT foo, (|    FROM Foo',
-    newKeywordItems('SELECT')
-  );
+  validateCompletionsFor('SELECT foo, (|    FROM Foo', newKeywordItems('SELECT'));
 
-  validateCompletionsFor(
-    'SELECT foo, (|) FROM Foo',
-    newKeywordItems('SELECT').concat(SELECT_snippet)
-  );
+  validateCompletionsFor('SELECT foo, (|) FROM Foo', newKeywordItems('SELECT').concat(SELECT_SNIPPET));
 
-  validateCompletionsFor(
-    'SELECT foo, (SELECT bar FROM Bar), (SELECT | FROM Xyz) FROM Foo',
-    [newKeywordItem('COUNT()'), ...sobjectsFieldsFor('Xyz')]
-  );
+  validateCompletionsFor('SELECT foo, (SELECT bar FROM Bar), (SELECT | FROM Xyz) FROM Foo', [
+    newKeywordItem('COUNT()'),
+    ...sobjectsFieldsFor('Xyz'),
+  ]);
   validateCompletionsFor(
     'SELECT foo, (SELECT bar FROM Bar), (SELECT xyz, | FROM Xyz) FROM Foo',
     sobjectsFieldsFor('Xyz')
@@ -444,10 +309,10 @@ describe('Code Completion on nested select fields: SELECT ... FROM XYZ', () => {
     'SELECT foo, (SELECT bar FROM Bar), | (SELECT xyz FROM Xyz) FROM Foo',
     sobjectsFieldsFor('Foo')
   );
-  validateCompletionsFor(
-    'SELECT foo, (SELECT | FROM Bar), (SELECT xyz FROM Xyz) FROM Foo',
-    [newKeywordItem('COUNT()'), ...sobjectsFieldsFor('Bar')]
-  );
+  validateCompletionsFor('SELECT foo, (SELECT | FROM Bar), (SELECT xyz FROM Xyz) FROM Foo', [
+    newKeywordItem('COUNT()'),
+    ...sobjectsFieldsFor('Bar'),
+  ]);
 
   // With a semi-join (SELECT in WHERE clause):
   validateCompletionsFor(
@@ -472,23 +337,14 @@ describe('Code Completion on SELECT XYZ FROM...', () => {
   validateCompletionsFor('SELECT id FROM | WHERE', expectedSObjectCompletions);
   validateCompletionsFor('SELECT id FROM |  WHERE', expectedSObjectCompletions);
   validateCompletionsFor('SELECT id FROM  | WHERE', expectedSObjectCompletions);
-  validateCompletionsFor(
-    'SELECT id \nFROM |\nWHERE',
-    expectedSObjectCompletions
-  );
+  validateCompletionsFor('SELECT id \nFROM |\nWHERE', expectedSObjectCompletions);
 
   validateCompletionsFor('SELECTHHH id FROMXXX |', []);
 });
 
 describe('Code Completion on nested SELECT fields FROM', () => {
-  validateCompletionsFor(
-    'SELECT id, (SELECT id FROM |) FROM Foo',
-    expectedSObjectCompletions
-  );
-  validateCompletionsFor(
-    'SELECT id, (SELECT id FROM Foo) FROM |',
-    expectedSObjectCompletions
-  );
+  validateCompletionsFor('SELECT id, (SELECT id FROM |) FROM Foo', expectedSObjectCompletions);
+  validateCompletionsFor('SELECT id, (SELECT id FROM Foo) FROM |', expectedSObjectCompletions);
   validateCompletionsFor(
     'SELECT id, (SELECT FROM |) FROM Foo', // No fields on SELECT
     expectedSObjectCompletions
@@ -500,25 +356,13 @@ describe('Code Completion on SELECT FROM (no columns on SELECT)', () => {
   validateCompletionsFor('SELECT\nFROM |', expectedSObjectCompletions);
 
   validateCompletionsFor('SELECT  FROM | WHERE', expectedSObjectCompletions);
-  validateCompletionsFor(
-    'SELECT\nFROM |\nWHERE\nORDER BY',
-    expectedSObjectCompletions
-  );
+  validateCompletionsFor('SELECT\nFROM |\nWHERE\nORDER BY', expectedSObjectCompletions);
 
   describe('Cursor is still touching FROM: it should still complete with fieldnames, and not SObject names', () => {
-    validateCompletionsFor('SELECT FROM|', [
-      newKeywordItem('COUNT()'),
-      ...sobjectsFieldsFor('Object'),
-    ]);
+    validateCompletionsFor('SELECT FROM|', [newKeywordItem('COUNT()'), ...sobjectsFieldsFor('Object')]);
 
-    validateCompletionsFor('SELECT\nFROM|', [
-      newKeywordItem('COUNT()'),
-      ...sobjectsFieldsFor('Object'),
-    ]);
-    validateCompletionsFor('SELECT\nFROM|\nWHERE', [
-      newKeywordItem('COUNT()'),
-      ...sobjectsFieldsFor('Object'),
-    ]);
+    validateCompletionsFor('SELECT\nFROM|', [newKeywordItem('COUNT()'), ...sobjectsFieldsFor('Object')]);
+    validateCompletionsFor('SELECT\nFROM|\nWHERE', [newKeywordItem('COUNT()'), ...sobjectsFieldsFor('Object')]);
   });
 
   validateCompletionsFor('SELECTHHH  FROMXXX |', []);
@@ -546,15 +390,7 @@ describe('Code Completion for GROUP BY', () => {
   ]);
 
   validateCompletionsFor('SELECT id FROM Account GROUP BY id |', [
-    ...newKeywordItems(
-      'FOR',
-      'OFFSET',
-      'HAVING',
-      'LIMIT',
-      'ORDER BY',
-      'UPDATE TRACKING',
-      'UPDATE VIEWSTAT'
-    ),
+    ...newKeywordItems('FOR', 'OFFSET', 'HAVING', 'LIMIT', 'ORDER BY', 'UPDATE TRACKING', 'UPDATE VIEWSTAT'),
   ]);
 
   // When there are aggregated fields on SELECT, the GROUP BY clause
@@ -574,41 +410,35 @@ describe('Code Completion for GROUP BY', () => {
     },
     ...newKeywordItems('ROLLUP', 'CUBE'),
   ]);
-  validateCompletionsFor(
-    'SELECT id, MAX(id2), AVG(AnnualRevenue) FROM Account GROUP BY |',
-    [
-      {
-        kind: CompletionItemKind.Field,
-        label: '__SOBJECT_FIELDS_PLACEHOLDER',
-        data: {
-          soqlContext: {
-            sobjectName: 'Account',
-            onlyGroupable: true,
-            mostLikelyItems: ['id'],
-          },
+  validateCompletionsFor('SELECT id, MAX(id2), AVG(AnnualRevenue) FROM Account GROUP BY |', [
+    {
+      kind: CompletionItemKind.Field,
+      label: '__SOBJECT_FIELDS_PLACEHOLDER',
+      data: {
+        soqlContext: {
+          sobjectName: 'Account',
+          onlyGroupable: true,
+          mostLikelyItems: ['id'],
         },
       },
-      ...newKeywordItems('ROLLUP', 'CUBE'),
-    ]
-  );
+    },
+    ...newKeywordItems('ROLLUP', 'CUBE'),
+  ]);
 
-  validateCompletionsFor(
-    'SELECT ID, Name, MAX(id3), AVG(AnnualRevenue) FROM Account GROUP BY id, |',
-    [
-      {
-        kind: CompletionItemKind.Field,
-        label: '__SOBJECT_FIELDS_PLACEHOLDER',
-        data: {
-          soqlContext: {
-            sobjectName: 'Account',
-            onlyGroupable: true,
-            mostLikelyItems: ['Name'],
-          },
+  validateCompletionsFor('SELECT ID, Name, MAX(id3), AVG(AnnualRevenue) FROM Account GROUP BY id, |', [
+    {
+      kind: CompletionItemKind.Field,
+      label: '__SOBJECT_FIELDS_PLACEHOLDER',
+      data: {
+        soqlContext: {
+          sobjectName: 'Account',
+          onlyGroupable: true,
+          mostLikelyItems: ['Name'],
         },
       },
-      // NOTE: ROLLUP and CUBE not expected unless cursor right after GROUP BY
-    ]
-  );
+    },
+    // NOTE: ROLLUP and CUBE not expected unless cursor right after GROUP BY
+  ]);
 
   // Expect more than one. Also test with inner queries..
   validateCompletionsFor(
@@ -633,44 +463,17 @@ describe('Code Completion for GROUP BY', () => {
 describe('Some keyword candidates after FROM clause', () => {
   validateCompletionsFor('SELECT id FROM Account |', [
     newKeywordItem('WHERE', { preselect: true }),
-    ...newKeywordItems(
-      'FOR',
-      'OFFSET',
-      'LIMIT',
-      'ORDER BY',
-      'GROUP BY',
-      'WITH',
-      'UPDATE TRACKING',
-      'UPDATE VIEWSTAT'
-    ),
+    ...newKeywordItems('FOR', 'OFFSET', 'LIMIT', 'ORDER BY', 'GROUP BY', 'WITH', 'UPDATE TRACKING', 'UPDATE VIEWSTAT'),
   ]);
 
-  validateCompletionsFor(
-    'SELECT id FROM Account FOR |',
-    newKeywordItems('VIEW', 'REFERENCE')
-  );
+  validateCompletionsFor('SELECT id FROM Account FOR |', newKeywordItems('VIEW', 'REFERENCE'));
 
-  validateCompletionsFor(
-    'SELECT id FROM Account WITH |',
-    newKeywordItems('DATA CATEGORY')
-  );
+  validateCompletionsFor('SELECT id FROM Account WITH |', newKeywordItems('DATA CATEGORY'));
 
-  validateCompletionsFor(
-    'SELECT Account.Name, (SELECT FirstName, LastName FROM Contacts |) FROM Account',
-    [
-      newKeywordItem('WHERE', { preselect: true }),
-      ...newKeywordItems(
-        'FOR',
-        'OFFSET',
-        'LIMIT',
-        'ORDER BY',
-        'GROUP BY',
-        'WITH',
-        'UPDATE TRACKING',
-        'UPDATE VIEWSTAT'
-      ),
-    ]
-  );
+  validateCompletionsFor('SELECT Account.Name, (SELECT FirstName, LastName FROM Contacts |) FROM Account', [
+    newKeywordItem('WHERE', { preselect: true }),
+    ...newKeywordItems('FOR', 'OFFSET', 'LIMIT', 'ORDER BY', 'GROUP BY', 'WITH', 'UPDATE TRACKING', 'UPDATE VIEWSTAT'),
+  ]);
 
   validateCompletionsFor('SELECT id FROM Account LIMIT |', []);
 });
@@ -686,20 +489,12 @@ describe('WHERE clause', () => {
   ]);
   validateCompletionsFor('SELECT id FROM Account WHERE Name |', [
     ...newKeywordItems('IN (', 'NOT IN (', '=', '!=', '<>'),
-    ...newKeywordItemsWithContext('Account', 'Name', [
-      'INCLUDES (',
-      'EXCLUDES (',
-      '<',
-      '<=',
-      '>',
-      '>=',
-      'LIKE',
-    ]),
+    ...newKeywordItemsWithContext('Account', 'Name', ['INCLUDES (', 'EXCLUDES (', '<', '<=', '>', '>=', 'LIKE']),
   ]);
 
   validateCompletionsFor('SELECT id FROM Account WHERE Type IN (|', [
     ...newKeywordItems('SELECT'),
-    SELECT_snippet,
+    SELECT_SNIPPET,
     ...expectedItemsForLiterals(
       {
         sobjectName: 'Account',
@@ -719,20 +514,17 @@ describe('WHERE clause', () => {
       true
     )
   );
-  validateCompletionsFor(
-    "SELECT id FROM Account WHERE Type IN (|, 'Customer')",
-    [
-      ...newKeywordItems('SELECT'),
-      SELECT_snippet,
-      ...expectedItemsForLiterals(
-        {
-          sobjectName: 'Account',
-          fieldName: 'Type',
-        },
-        true
-      ),
-    ]
-  );
+  validateCompletionsFor("SELECT id FROM Account WHERE Type IN (|, 'Customer')", [
+    ...newKeywordItems('SELECT'),
+    SELECT_SNIPPET,
+    ...expectedItemsForLiterals(
+      {
+        sobjectName: 'Account',
+        fieldName: 'Type',
+      },
+      true
+    ),
+  ]);
 
   // NOTE: Unlike IN(), INCLUDES()/EXCLUDES() never support NULL in the list
   validateCompletionsFor(
@@ -798,7 +590,7 @@ describe('WHERE clause', () => {
   );
 
   validateCompletionsFor(
-    `SELECT Name FROM Account WHERE LastActivityDate < |`,
+    'SELECT Name FROM Account WHERE LastActivityDate < |',
     expectedItemsForLiterals(
       {
         sobjectName: 'Account',
@@ -808,7 +600,7 @@ describe('WHERE clause', () => {
     )
   );
   validateCompletionsFor(
-    `SELECT Name FROM Account WHERE LastActivityDate > |`,
+    'SELECT Name FROM Account WHERE LastActivityDate > |',
     expectedItemsForLiterals(
       {
         sobjectName: 'Account',
@@ -950,41 +742,30 @@ describe('SELECT Function expressions', () => {
   ]);
 
   // NOTE: cursor is right BEFORE the function expression:
-  validateCompletionsFor('SELECT Id, | SUM(AnnualRevenue) FROM Account', [
-    ...sobjectsFieldsFor('Account'),
-  ]);
+  validateCompletionsFor('SELECT Id, | SUM(AnnualRevenue) FROM Account', [...sobjectsFieldsFor('Account')]);
 });
 
 describe('Code Completion on "semi-join" (SELECT)', () => {
-  validateCompletionsFor(
-    'SELECT Id FROM Account WHERE Id IN (SELECT FROM |)',
-    expectedSObjectCompletions
-  );
+  validateCompletionsFor('SELECT Id FROM Account WHERE Id IN (SELECT FROM |)', expectedSObjectCompletions);
 
-  validateCompletionsFor(
-    'SELECT Id FROM Account WHERE Id IN (SELECT | FROM Foo)',
-    [
-      {
-        kind: CompletionItemKind.Field,
-        label: '__SOBJECT_FIELDS_PLACEHOLDER',
-        data: { soqlContext: { sobjectName: 'Foo' } },
-      },
-      newFunctionCallItem('AVG'),
-      newFunctionCallItem('MIN'),
-      newFunctionCallItem('MAX'),
-      newFunctionCallItem('SUM'),
-      newFunctionCallItem('COUNT'),
-      newFunctionCallItem('COUNT_DISTINCT'),
-      INNER_SELECT_snippet,
-    ]
-  );
+  validateCompletionsFor('SELECT Id FROM Account WHERE Id IN (SELECT | FROM Foo)', [
+    {
+      kind: CompletionItemKind.Field,
+      label: '__SOBJECT_FIELDS_PLACEHOLDER',
+      data: { soqlContext: { sobjectName: 'Foo' } },
+    },
+    newFunctionCallItem('AVG'),
+    newFunctionCallItem('MIN'),
+    newFunctionCallItem('MAX'),
+    newFunctionCallItem('SUM'),
+    newFunctionCallItem('COUNT'),
+    newFunctionCallItem('COUNT_DISTINCT'),
+    INNER_SELECT_SNIPPET,
+  ]);
 
   // NOTE: The SELECT of a semi-join can only have one field, thus
   // we expect no completions here:
-  validateCompletionsFor(
-    'SELECT Id FROM Account WHERE Id IN (SELECT Id, | FROM Foo)',
-    []
-  );
+  validateCompletionsFor('SELECT Id FROM Account WHERE Id IN (SELECT Id, | FROM Foo)', []);
 });
 
 describe('Special cases around newlines', () => {
@@ -994,18 +775,9 @@ describe('Special cases around newlines', () => {
   validateCompletionsFor('SELECT id FROM\n\n|', expectedSObjectCompletions);
   validateCompletionsFor('SELECT id FROM\n|\n', expectedSObjectCompletions);
   validateCompletionsFor('SELECT id FROM\n\n|\n\n', expectedSObjectCompletions);
-  validateCompletionsFor(
-    'SELECT id FROM\n\n\n\n\n\n|\n\n',
-    expectedSObjectCompletions
-  );
-  validateCompletionsFor(
-    'SELECT id FROM\n\n|\n\nWHERE',
-    expectedSObjectCompletions
-  );
-  validateCompletionsFor(
-    'SELECT id FROM\n\n|WHERE',
-    expectedSObjectCompletions
-  );
+  validateCompletionsFor('SELECT id FROM\n\n\n\n\n\n|\n\n', expectedSObjectCompletions);
+  validateCompletionsFor('SELECT id FROM\n\n|\n\nWHERE', expectedSObjectCompletions);
+  validateCompletionsFor('SELECT id FROM\n\n|WHERE', expectedSObjectCompletions);
 });
 
 describe('Support leading comment lines (starting with // )', () => {
@@ -1029,22 +801,16 @@ function validateCompletionsFor(
   text: string,
   expectedItems: CompletionItem[],
   options: { skip?: boolean; only?: boolean; cursorChar?: string } = {}
-) {
+): void {
   const itFn = options.skip ? xit : options.only ? it.only : it;
   const cursorChar = options.cursorChar || '|';
   itFn(text, () => {
-    if (text.indexOf(cursorChar) != text.lastIndexOf(cursorChar)) {
-      throw new Error(
-        `Test text must have 1 and only 1 cursor (char: ${cursorChar})`
-      );
+    if (text.indexOf(cursorChar) !== text.lastIndexOf(cursorChar)) {
+      throw new Error(`Test text must have 1 and only 1 cursor (char: ${cursorChar})`);
     }
 
     const [line, column] = getCursorPosition(text, cursorChar);
-    const completions = completionsFor(
-      text.replace(cursorChar, ''),
-      line,
-      column
-    );
+    const completions = completionsFor(text.replace(cursorChar, ''), line, column);
 
     // NOTE: we don't use Sets here because when there are failures, the error
     // message is not useful
@@ -1061,12 +827,12 @@ function getCursorPosition(text: string, cursorChar: string): [number, number] {
   throw new Error(`Cursor ${cursorChar} not found in ${text} !`);
 }
 
-function sobjectsFieldsFor(sobjectName: string) {
+function sobjectsFieldsFor(sobjectName: string): CompletionItem[] {
   return [
     {
       kind: CompletionItemKind.Field,
       label: '__SOBJECT_FIELDS_PLACEHOLDER',
-      data: { soqlContext: { sobjectName: sobjectName } },
+      data: { soqlContext: { sobjectName } },
     },
     ...newKeywordItems('TYPEOF', 'DISTANCE('),
     newFunctionCallItem('AVG'),
@@ -1075,6 +841,6 @@ function sobjectsFieldsFor(sobjectName: string) {
     newFunctionCallItem('SUM'),
     newFunctionCallItem('COUNT'),
     newFunctionCallItem('COUNT_DISTINCT'),
-    INNER_SELECT_snippet,
+    INNER_SELECT_SNIPPET,
   ];
 }

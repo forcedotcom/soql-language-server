@@ -1,13 +1,12 @@
 /*
- *  Copyright (c) 2020, salesforce.com, inc.
- *  All rights reserved.
- *  Licensed under the BSD 3-Clause license.
- *  For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
- *
+ * Copyright (c) 2021, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
 import { DefaultErrorStrategy } from 'antlr4ts/DefaultErrorStrategy';
-//import { DefaultErrorStrategy } from './DefaultErrorStrategy';
+// import { DefaultErrorStrategy } from './DefaultErrorStrategy';
 import { Parser } from 'antlr4ts/Parser';
 import { Token } from 'antlr4ts/Token';
 
@@ -30,6 +29,7 @@ export class SoqlCompletionErrorStrategy extends DefaultErrorStrategy {
    *
    * We might implement more SOQL-completion-specific logic in the future.
    */
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   protected singleTokenDeletion(recognizer: Parser): Token | undefined {
     return undefined;
   }

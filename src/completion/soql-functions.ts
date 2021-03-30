@@ -1,9 +1,8 @@
 /*
- *  Copyright (c) 2020, salesforce.com, inc.
- *  All rights reserved.
- *  Licensed under the BSD 3-Clause license.
- *  For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
- *
+ * Copyright (c) 2021, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
 /**
@@ -134,7 +133,7 @@ export const soqlFunctionsByName = soqlFunctions.reduce((result, soqlFn) => {
   return result;
 }, {} as Record<string, SOQLFunction>);
 
-const typesForLT_GT_operators = [
+const typesForLTGTOperators = [
   'anyType',
   'complexvalue',
   'currency',
@@ -155,10 +154,10 @@ const typesForLT_GT_operators = [
 export const soqlOperators: {
   [key: string]: { types: string[]; notNullable: boolean };
 } = {
-  '<': { types: typesForLT_GT_operators, notNullable: true },
-  '<=': { types: typesForLT_GT_operators, notNullable: true },
-  '>': { types: typesForLT_GT_operators, notNullable: true },
-  '>=': { types: typesForLT_GT_operators, notNullable: true },
+  '<': { types: typesForLTGTOperators, notNullable: true },
+  '<=': { types: typesForLTGTOperators, notNullable: true },
+  '>': { types: typesForLTGTOperators, notNullable: true },
+  '>=': { types: typesForLTGTOperators, notNullable: true },
   INCLUDES: { types: ['multipicklist'], notNullable: true },
   EXCLUDES: { types: ['multipicklist'], notNullable: true },
   LIKE: { types: ['string', 'textarea', 'time'], notNullable: true },
