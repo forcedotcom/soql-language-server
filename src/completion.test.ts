@@ -168,6 +168,18 @@ const expectedSObjectCompletions: CompletionItem[] = [
   },
 ];
 
+function relationshipsItem(sobjectName: string): CompletionItem {
+  return {
+    kind: CompletionItemKind.Class,
+    label: '__RELATIONSHIPS_PLACEHOLDER',
+    data: {
+      soqlContext: {
+        sobjectName,
+      },
+    },
+  };
+}
+
 describe('Code Completion on invalid cursor position', () => {
   it('Should return empty if cursor is on non-exitent line', () => {
     expect(completionsFor('SELECT id FROM Foo', 2, 5)).toHaveLength(0);
@@ -257,33 +269,27 @@ describe('Code Completion on nested select fields: SELECT ... FROM XYZ', () => {
   validateCompletionsFor('SELECT (SELECT bar FROM Bar),| FROM Foo', sobjectsFieldsFor('Foo'));
   validateCompletionsFor('SELECT (SELECT bar FROM Bar), | FROM Foo', sobjectsFieldsFor('Foo'));
   validateCompletionsFor('SELECT id, | (SELECT bar FROM Bar) FROM Foo', sobjectsFieldsFor('Foo'));
-  validateCompletionsFor('SELECT foo, (SELECT | FROM Bar) FROM Foo', [
-    newKeywordItem('COUNT()'),
-    ...sobjectsFieldsFor('Bar'),
-  ]);
-  validateCompletionsFor('SELECT foo, (SELECT |, bar FROM Bar) FROM Foo', [
-    newKeywordItem('COUNT()'),
-    ...sobjectsFieldsFor('Bar'),
-  ]);
-  validateCompletionsFor('SELECT foo, (SELECT bar, | FROM Bar) FROM Foo', sobjectsFieldsFor('Bar'));
-  validateCompletionsFor('SELECT foo, (SELECT bar, (SELECT | FROM XYZ) FROM Bar) FROM Foo', [
-    ...newKeywordItems('COUNT()'),
-    ...sobjectsFieldsFor('XYZ'),
-  ]);
-  validateCompletionsFor('SELECT foo, (SELECT |, (SELECT xyz FROM XYZ) FROM Bar) FROM Foo', [
-    newKeywordItem('COUNT()'),
-    ...sobjectsFieldsFor('Bar'),
-  ]);
-  validateCompletionsFor('SELECT | (SELECT bar, (SELECT xyz FROM XYZ) FROM Bar) FROM Foo', [
-    newKeywordItem('COUNT()'),
-    ...sobjectsFieldsFor('Foo'),
-  ]);
+  validateCompletionsFor('SELECT foo, (SELECT | FROM Bars) FROM Foo', [...relationshipFieldsFor('Foo', 'Bars')]);
 
-  validateCompletionsFor('SELECT (SELECT |) FROM Foo', [newKeywordItem('COUNT()'), ...sobjectsFieldsFor('Object')]);
+  // TODO: improve ANTLR error strategy for this case:
+  validateCompletionsFor('SELECT foo, (SELECT |, bar FROM Bars) FROM Foo', [...relationshipFieldsFor('Foo', 'Bars')], {
+    skip: true,
+  });
+  validateCompletionsFor('SELECT foo, (SELECT bar, | FROM Bars) FROM Foo', relationshipFieldsFor('Foo', 'Bars'));
+
+  /*
+    NOTE: Only 1 level of nesting is allowed. Thus, these are not valid queries:
+
+    SELECT foo, (SELECT bar, (SELECT | FROM XYZ) FROM Bar) FROM Foo
+    SELECT foo, (SELECT |, (SELECT xyz FROM XYZ) FROM Bar) FROM Foo
+    SELECT | (SELECT bar, (SELECT xyz FROM XYZ) FROM Bar) FROM Foo
+   */
+
+  validateCompletionsFor('SELECT (SELECT |) FROM Foo', relationshipFieldsFor('Foo', undefined));
 
   // We used to have special code just to handle this particular case.
   // Not worth it, that's why it's skipped now.
-  // We keep the test here because it'd be nice to solve it in a generic way
+  // We keep the test here because it'd be nice to solve it in a generic way:
   validateCompletionsFor('SELECT (SELECT ), | FROM Foo', sobjectsFieldsFor('Foo'), { skip: true });
 
   validateCompletionsFor('SELECT foo, ( | FROM Foo', newKeywordItems('SELECT'));
@@ -293,13 +299,12 @@ describe('Code Completion on nested select fields: SELECT ... FROM XYZ', () => {
 
   validateCompletionsFor('SELECT foo, (|) FROM Foo', newKeywordItems('SELECT').concat(SELECT_SNIPPET));
 
-  validateCompletionsFor('SELECT foo, (SELECT bar FROM Bar), (SELECT | FROM Xyz) FROM Foo', [
-    newKeywordItem('COUNT()'),
-    ...sobjectsFieldsFor('Xyz'),
+  validateCompletionsFor('SELECT foo, (SELECT bar FROM Bar), (SELECT | FROM Xyzs) FROM Foo', [
+    ...relationshipFieldsFor('Foo', 'Xyzs'),
   ]);
   validateCompletionsFor(
-    'SELECT foo, (SELECT bar FROM Bar), (SELECT xyz, | FROM Xyz) FROM Foo',
-    sobjectsFieldsFor('Xyz')
+    'SELECT foo, (SELECT bar FROM Bar), (SELECT xyz, | FROM Xyzs) FROM Foo',
+    relationshipFieldsFor('Foo', 'Xyzs')
   );
   validateCompletionsFor(
     'SELECT foo, | (SELECT bar FROM Bar), (SELECT xyz FROM Xyz) FROM Foo',
@@ -309,9 +314,8 @@ describe('Code Completion on nested select fields: SELECT ... FROM XYZ', () => {
     'SELECT foo, (SELECT bar FROM Bar), | (SELECT xyz FROM Xyz) FROM Foo',
     sobjectsFieldsFor('Foo')
   );
-  validateCompletionsFor('SELECT foo, (SELECT | FROM Bar), (SELECT xyz FROM Xyz) FROM Foo', [
-    newKeywordItem('COUNT()'),
-    ...sobjectsFieldsFor('Bar'),
+  validateCompletionsFor('SELECT foo, (SELECT | FROM Bars), (SELECT xyz FROM Xyz) FROM Foo', [
+    ...relationshipFieldsFor('Foo', 'Bars'),
   ]);
 
   // With a semi-join (SELECT in WHERE clause):
@@ -342,12 +346,18 @@ describe('Code Completion on SELECT XYZ FROM...', () => {
   validateCompletionsFor('SELECTHHH id FROMXXX |', []);
 });
 
-describe('Code Completion on nested SELECT fields FROM', () => {
-  validateCompletionsFor('SELECT id, (SELECT id FROM |) FROM Foo', expectedSObjectCompletions);
+describe('Code Completion on nested SELECT xyz FROM ...: parent-child relationship', () => {
+  validateCompletionsFor('SELECT id, (SELECT id FROM |) FROM Foo', [relationshipsItem('Foo')]);
   validateCompletionsFor('SELECT id, (SELECT id FROM Foo) FROM |', expectedSObjectCompletions);
+  validateCompletionsFor('SELECT id, (SELECT id FROM |), (SELECT id FROM Bar) FROM Foo', [relationshipsItem('Foo')]);
+  validateCompletionsFor('SELECT id, (SELECT id FROM Foo), (SELECT id FROM |) FROM Bar', [relationshipsItem('Bar')]);
   validateCompletionsFor(
-    'SELECT id, (SELECT FROM |) FROM Foo', // No fields on SELECT
-    expectedSObjectCompletions
+    'SELECT id, (SELECT FROM |) FROM Bar', // No fields on inner SELECT
+    [relationshipsItem('Bar')]
+  );
+  validateCompletionsFor(
+    'SELECT id, (SELECT FROM |), (SELECT Id FROM Foo) FROM Bar', // No fields on SELECT
+    [relationshipsItem('Bar')]
   );
 });
 
@@ -375,7 +385,15 @@ describe('Code Completion for ORDER BY', () => {
       label: '__SOBJECT_FIELDS_PLACEHOLDER',
       data: { soqlContext: { sobjectName: 'Account', onlySortable: true } },
     },
-    newKeywordItem('DISTANCE('),
+  ]);
+
+  // Nested, parent-child relationships:
+  validateCompletionsFor('SELECT id, (SELECT Email FROM Contacts ORDER BY |) FROM Account', [
+    {
+      kind: CompletionItemKind.Field,
+      label: '__RELATIONSHIP_FIELDS_PLACEHOLDER',
+      data: { soqlContext: { sobjectName: 'Account', relationshipName: 'Contacts', onlySortable: true } },
+    },
   ]);
 });
 
@@ -470,9 +488,10 @@ describe('Some keyword candidates after FROM clause', () => {
 
   validateCompletionsFor('SELECT id FROM Account WITH |', newKeywordItems('DATA CATEGORY'));
 
+  // NOTE: GROUP BY not supported on nested (parent-child relationship) SELECTs
   validateCompletionsFor('SELECT Account.Name, (SELECT FirstName, LastName FROM Contacts |) FROM Account', [
     newKeywordItem('WHERE', { preselect: true }),
-    ...newKeywordItems('FOR', 'OFFSET', 'LIMIT', 'ORDER BY', 'GROUP BY', 'WITH', 'UPDATE TRACKING', 'UPDATE VIEWSTAT'),
+    ...newKeywordItems('FOR', 'OFFSET', 'LIMIT', 'ORDER BY', 'WITH', 'UPDATE TRACKING', 'UPDATE VIEWSTAT'),
   ]);
 
   validateCompletionsFor('SELECT id FROM Account LIMIT |', []);
@@ -480,7 +499,7 @@ describe('Some keyword candidates after FROM clause', () => {
 
 describe('WHERE clause', () => {
   validateCompletionsFor('SELECT id FROM Account WHERE |', [
-    ...newKeywordItems('DISTANCE(', 'NOT'),
+    ...newKeywordItems('NOT'),
     {
       kind: CompletionItemKind.Field,
       label: '__SOBJECT_FIELDS_PLACEHOLDER',
@@ -746,21 +765,16 @@ describe('SELECT Function expressions', () => {
 });
 
 describe('Code Completion on "semi-join" (SELECT)', () => {
+  validateCompletionsFor('SELECT Id FROM Account WHERE Id IN (SELECT AccountId FROM |)', expectedSObjectCompletions);
   validateCompletionsFor('SELECT Id FROM Account WHERE Id IN (SELECT FROM |)', expectedSObjectCompletions);
 
+  // NOTE: The SELECT of a semi-join only accepts an "identifier" type column, no functions
   validateCompletionsFor('SELECT Id FROM Account WHERE Id IN (SELECT | FROM Foo)', [
     {
       kind: CompletionItemKind.Field,
       label: '__SOBJECT_FIELDS_PLACEHOLDER',
-      data: { soqlContext: { sobjectName: 'Foo' } },
+      data: { soqlContext: { sobjectName: 'Foo', onlyTypes: ['id', 'reference'], dontShowRelationshipField: true } },
     },
-    newFunctionCallItem('AVG'),
-    newFunctionCallItem('MIN'),
-    newFunctionCallItem('MAX'),
-    newFunctionCallItem('SUM'),
-    newFunctionCallItem('COUNT'),
-    newFunctionCallItem('COUNT_DISTINCT'),
-    INNER_SELECT_SNIPPET,
   ]);
 
   // NOTE: The SELECT of a semi-join can only have one field, thus
@@ -834,7 +848,7 @@ function sobjectsFieldsFor(sobjectName: string): CompletionItem[] {
       label: '__SOBJECT_FIELDS_PLACEHOLDER',
       data: { soqlContext: { sobjectName } },
     },
-    ...newKeywordItems('TYPEOF', 'DISTANCE('),
+    ...newKeywordItems('TYPEOF'),
     newFunctionCallItem('AVG'),
     newFunctionCallItem('MIN'),
     newFunctionCallItem('MAX'),
@@ -842,5 +856,16 @@ function sobjectsFieldsFor(sobjectName: string): CompletionItem[] {
     newFunctionCallItem('COUNT'),
     newFunctionCallItem('COUNT_DISTINCT'),
     INNER_SELECT_SNIPPET,
+  ];
+}
+
+function relationshipFieldsFor(sobjectName: string, relationshipName?: string): CompletionItem[] {
+  return [
+    {
+      kind: CompletionItemKind.Field,
+      label: '__RELATIONSHIP_FIELDS_PLACEHOLDER',
+      data: { soqlContext: { sobjectName, relationshipName } },
+    },
+    ...newKeywordItems('TYPEOF'),
   ];
 }
