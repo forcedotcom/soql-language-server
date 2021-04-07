@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.7.0](https://www.github.com/forcedotcom/soql-language-server/compare/v0.6.2...v0.7.0) (2021-04-07)
+
+
+### Features
+
+* improve support for relationship queries (nested SELECTs) ([4a973ee](https://www.github.com/forcedotcom/soql-language-server/commit/4a973ee3c9274c6acf647726cad5c829839fde8c))
+
 ### [0.6.2](https://www.github.com/forcedotcom/soql-language-server/compare/v0.6.1...v0.6.2) (2021-03-02)
 
 
