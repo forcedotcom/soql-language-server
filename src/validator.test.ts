@@ -6,7 +6,7 @@
  */
 
 import { TextDocument } from 'vscode-languageserver-textdocument';
-import { Connection } from 'vscode-languageserver';
+import { Connection, RemoteConsole } from 'vscode-languageserver';
 import { Validator, RunQueryErrorResponse, RunQuerySuccessResponse } from './validator';
 
 function mockSOQLDoc(content: string): TextDocument {
@@ -24,6 +24,8 @@ function createMockClientConnection(
       // eslint-disable-next-line @typescript-eslint/no-unused-vars,@typescript-eslint/no-explicit-any
       params: any
     ): { result: RunQuerySuccessResponse } | { error: RunQueryErrorResponse } => response,
+    // eslint-disable-next-line no-console,@typescript-eslint/no-unsafe-assignment
+    console: { log: console.log } as RemoteConsole,
   };
 }
 
