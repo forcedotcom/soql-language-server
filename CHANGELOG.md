@@ -1,5 +1,12 @@
 # Changelog
 
+### [0.7.1](https://www.github.com/forcedotcom/soql-language-server/compare/v0.7.0...v0.7.1) (2021-06-09)
+
+
+### Bug Fixes
+
+* clear diagnostics when file is closed or deleted ([4b7f7be](https://www.github.com/forcedotcom/soql-language-server/commit/4b7f7be957fc2f76274d8d541ffd2013df15ef3b)), closes [#28](https://www.github.com/forcedotcom/soql-language-server/issues/28)
+
 ## [0.7.0](https://www.github.com/forcedotcom/soql-language-server/compare/v0.6.2...v0.7.0) (2021-04-07)
 
 
