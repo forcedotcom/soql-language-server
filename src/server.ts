@@ -11,11 +11,12 @@ import {
   ProposedFeatures,
   InitializeParams,
   TextDocumentSyncKind,
-  TextDocumentChangeEvent,
   InitializeResult,
-  Diagnostic,
   TextDocumentPositionParams,
   CompletionItem,
+  DidChangeWatchedFilesParams,
+  FileChangeType,
+  DocumentUri,
 } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { Validator } from './validator';
@@ -46,22 +47,41 @@ connection.onInitialize((params: InitializeParams) => {
   return result;
 });
 
+function clearDiagnostics(uri: DocumentUri): void {
+  connection.sendDiagnostics({ uri, diagnostics: [] });
+}
+
+documents.onDidClose((change) => {
+  clearDiagnostics(change.document.uri);
+});
+
+/**
+ * NOTE: Listening on deleted files should NOT be necessary to trigger the clearing of Diagnostics,
+ * since the `documents.onDidClose()` callback should take care of it. However, for some reason,
+ * on automated tests of the SOQL VS Code extension, the 'workbench.action.close*Editor' commands
+ * don't trigger the `onDidClose()` callback on the language server side.
+ *
+ * So, to be safe (and to make tests green) we explicitly clear diagnostics also on deleted files:
+ */
+connection.onDidChangeWatchedFiles((watchedFiles: DidChangeWatchedFilesParams) => {
+  const deletedUris = watchedFiles.changes
+    .filter((change) => change.type === FileChangeType.Deleted)
+    .map((change) => change.uri);
+  deletedUris.forEach(clearDiagnostics);
+});
+
 documents.onDidChangeContent(async (change) => {
   const diagnostics = Validator.validateSoqlText(change.document);
   // clear syntax errors immediatly (don't wait on http call)
   connection.sendDiagnostics({ uri: change.document.uri, diagnostics });
 
   if (diagnostics.length === 0 && runQueryValidation) {
-    await runValidateLimit0Query(change);
+    const remoteDiagnostics = await Validator.validateLimit0Query(change.document, connection);
+    if (remoteDiagnostics.length > 0) {
+      connection.sendDiagnostics({ uri: change.document.uri, diagnostics: remoteDiagnostics });
+    }
   }
 });
-
-async function runValidateLimit0Query(change: TextDocumentChangeEvent<TextDocument>): Promise<void> {
-  connection.console.log(`validate SOQL query:\n${change.document.getText()}`);
-  let diagnostics: Diagnostic[] = [];
-  diagnostics = await Validator.validateLimit0Query(change.document, connection);
-  connection.sendDiagnostics({ uri: change.document.uri, diagnostics });
-}
 
 connection.onCompletion(
   // eslint-disable-next-line @typescript-eslint/require-await
@@ -72,7 +92,6 @@ connection.onCompletion(
     return completionsFor(doc.getText(), request.position.line + 1, request.position.character + 1);
   }
 );
-
 documents.listen(connection);
 
 connection.listen();

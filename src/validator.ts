@@ -54,6 +54,8 @@ export class Validator {
   }
 
   public static async validateLimit0Query(textDocument: TextDocument, connection: Connection): Promise<Diagnostic[]> {
+    connection.console.log(`validate SOQL query:\n${textDocument.getText()}`);
+
     const diagnostics: Diagnostic[] = [];
     const soqlWithHeaderComments = parseHeaderComments(textDocument.getText());
 
