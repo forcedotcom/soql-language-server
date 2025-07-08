@@ -1,0 +1,15 @@
+# These owners will be the default owners for everything in
+
+# the repo. Unless a later match takes precedence,
+
+# @forcedotcom/ide-experience will be requested for
+
+# review when someone opens a pull request.
+
+# Order is important; the last matching pattern takes precedence
+
+# over the first matching pattern.
+
+#ECCN:Open Source
+#GUSINFO: Platform Dev Tools Scrum Team, IDE Experience Team
+*       @forcedotcom/ide-experience
