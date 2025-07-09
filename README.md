@@ -1,13 +1,52 @@
-# SOQL Language Server
+## Table of Contents
 
-Provides SOQL language capabilities for text editors, including code-completion and errors checks.
-This package implements the server-side of the LSP protocol.
+- [Overview](#overview)
+- [Installation](#installation)
+- [Usage](#usage)
+- [Development](#development)
+- [Contributing](#contributing)
+- [License](#license)
+- [Security](#security)
+- [Resources](#resources)
+
+## Overview
+
+The SOQL Language Server provides comprehensive language support for SOQL (Salesforce Object Query Language) queries in text editors. This package implements the server-side of the LSP protocol to provide features such as:
+
+- Code completion and IntelliSense
+- Syntax error checking and validation
+- Query analysis and optimization suggestions
+- Integration with Salesforce metadata
 
 [Salesforce's SOQL VS Code extension](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode-soql), which lives in repo [salesforcedx-vscode](https://github.com/forcedotcom/salesforcedx-vscode), includes an LSP client implementation for this server.
 
-## Development
+## Installation
+
+This package is primarily used as a dependency by the Salesforce SOQL VS Code extension. For end users, the language server is automatically installed when you install the VS Code extension.
+
+For developers who want to work with the language server directly:
+
+```bash
+npm install @salesforce/soql-language-server
+```
+
+## Usage
+
+The language server is designed to work with LSP-compatible editors. It's primarily used through the [Salesforce SOQL VS Code extension](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode-soql).
+
+## Contributing
 
 If you are interested in contributing, please take a look at the [CONTRIBUTING](CONTRIBUTING.md) guide.
+
+## License
+
+This project is licensed under the BSD 3-Clause License - see the [LICENSE.txt](LICENSE.txt) file for details.
+
+## Security
+
+Please report any security issues to [security@salesforce.com](mailto:security@salesforce.com) as soon as they are discovered. See our [SECURITY.md](SECURITY.md) file for more details.
+
+## Development
 
 - `yarn` from the top-level directory to pull all dependencies
 - `yarn build` to build
