@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.8.0](https://www.github.com/forcedotcom/soql-language-server/compare/v0.7.1...v0.8.0) (2026-03-06)
+
+
+### Features
+
+* use soql-common v2.0.0 ([#52](https://www.github.com/forcedotcom/soql-language-server/issues/52)) ([c2ba381](https://www.github.com/forcedotcom/soql-language-server/commit/c2ba381bb45ca11ceb71a3f7f545fed052748218))
+
 ### [0.7.1](https://www.github.com/forcedotcom/soql-language-server/compare/v0.7.0...v0.7.1) (2021-06-09)
 
 
