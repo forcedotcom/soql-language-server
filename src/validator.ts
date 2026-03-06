@@ -5,11 +5,14 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { SOQLParser } from '@salesforce/soql-common/lib/soql-parser';
+import { ParserError, SOQLParser } from '@salesforce/soql-common/soql-parser.lib';
 import { Diagnostic, DiagnosticSeverity, Range } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { Connection } from 'vscode-languageserver';
-import { parseHeaderComments, SoqlWithComments } from '@salesforce/soql-common/lib/soqlComments';
+import { parseHeaderComments } from '@salesforce/soql-common/soqlComments';
+
+/** Return type of parseHeaderComments - SoqlWithComments is not exported from the package */
+type SoqlWithComments = ReturnType<typeof parseHeaderComments>;
 import { RequestTypes, RunQueryResponse } from './index';
 
 const findLimitRegex = new RegExp(/LIMIT\s+\d+\s*$/, 'i');
@@ -38,7 +41,7 @@ export class Validator {
     });
     const result = parser.parseQuery(parseHeaderComments(textDocument.getText()).headerPaddedSoqlText);
     if (!result.getSuccess()) {
-      result.getParserErrors().forEach((error) => {
+      result.getParserErrors().forEach((error: ParserError) => {
         diagnostics.push({
           severity: DiagnosticSeverity.Error,
           range: {

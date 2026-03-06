@@ -665,10 +665,12 @@
   resolved "https://registry.yarnpkg.com/@salesforce/prettier-config/-/prettier-config-0.0.2.tgz#ded39bf7cb75238edc9db6dd093649111350f8bc"
   integrity sha512-KExM355BLbxCW6siGBV7oUOotXvvVp0tAWERgzUkM2FcMb9fWrjwXDrIHc8V0UdDlA3UXtFltDWgN+Yqi+BA/g==
 
-"@salesforce/soql-common@0.2.1":
-  version "0.2.1"
-  resolved "https://registry.yarnpkg.com/@salesforce/soql-common/-/soql-common-0.2.1.tgz#901cccfd444926e38ab81e26bacd0ec919743c17"
-  integrity sha512-6/yoLlADP1PdR0I/zBBGX7U2s9lOX3JIvJaDiUivnNtM4waLUJJVOWq6XUY+NCDxJ9Du423W2AjLte5QHQOq6Q==
+"@salesforce/soql-common@2.0.0":
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/@salesforce/soql-common/-/soql-common-2.0.0.tgz#6fcae4e3502ce46acf3f0ed72116d7edd791b348"
+  integrity sha512-9MR2q4TGh74UzdA6vdrI9h9cidf+RItU1FOkfZi4s2Oa2IcjWrzlSWCnVSJZtMUqLadqCa9AzBotPsewK2MfUQ==
+  dependencies:
+    antlr4ts "^0.5.0-alpha.3"
 
 "@sinonjs/commons@^1.7.0":
   version "1.8.2"

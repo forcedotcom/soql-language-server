@@ -5,15 +5,15 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { SoqlParser } from '@salesforce/soql-common/lib/soql-parser/generated/SoqlParser';
-import { SoqlLexer } from '@salesforce/soql-common/lib/soql-parser/generated/SoqlLexer';
-import { LowerCasingCharStream } from '@salesforce/soql-common/lib/soql-parser';
+import { SoqlParser } from '@salesforce/soql-common/soql-parser.lib/generated/SoqlParser';
+import { SoqlLexer } from '@salesforce/soql-common/soql-parser.lib/generated/SoqlLexer';
+import { LowerCasingCharStream } from '@salesforce/soql-common/soql-parser.lib';
 import { CompletionItem, CompletionItemKind, InsertTextFormat } from 'vscode-languageserver';
 
 import { CommonTokenStream, Parser, ParserRuleContext, Token, TokenStream } from 'antlr4ts';
 
 import * as c3 from 'antlr4-c3';
-import { parseHeaderComments } from '@salesforce/soql-common/lib/soqlComments';
+import { parseHeaderComments } from '@salesforce/soql-common/soqlComments';
 import {
   soqlFunctionsByName,
   soqlFunctions,
