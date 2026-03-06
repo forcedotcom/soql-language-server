@@ -11,8 +11,8 @@ import { Parser } from 'antlr4ts/Parser';
 import { Token } from 'antlr4ts/Token';
 
 import { IntervalSet } from 'antlr4ts/misc/IntervalSet';
-import { SoqlParser } from '@salesforce/soql-common/lib/soql-parser/generated/SoqlParser';
-import { SoqlLexer } from '@salesforce/soql-common/lib/soql-parser/generated/SoqlLexer';
+import { SoqlParser } from '@salesforce/soql-common/soql-parser.lib/generated/SoqlParser';
+import { SoqlLexer } from '@salesforce/soql-common/soql-parser.lib/generated/SoqlLexer';
 
 export class SoqlCompletionErrorStrategy extends DefaultErrorStrategy {
   /**

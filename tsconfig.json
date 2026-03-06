@@ -1,6 +1,12 @@
 {
   "$schema": "http://json.schemastore.org/tsconfig",
   "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@salesforce/soql-common/soql-parser.lib": ["node_modules/@salesforce/soql-common/src/soql-parser.lib/index"],
+      "@salesforce/soql-common/soql-parser.lib/*": ["node_modules/@salesforce/soql-common/src/soql-parser.lib/*"],
+      "@salesforce/soql-common/soqlComments": ["node_modules/@salesforce/soql-common/out/src/soqlComments"]
+    },
     "declaration": true,
     "lib": ["es2018"],
     "module": "commonjs",

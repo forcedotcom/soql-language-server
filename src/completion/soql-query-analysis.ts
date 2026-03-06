@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import {
+  SoqlFieldContext,
   SoqlFromExprsContext,
   SoqlGroupByExprsContext,
   SoqlInnerQueryContext,
@@ -12,10 +13,10 @@ import {
   SoqlQueryContext,
   SoqlSelectColumnExprContext,
   SoqlSemiJoinContext,
-} from '@salesforce/soql-common/lib/soql-parser/generated/SoqlParser';
+} from '@salesforce/soql-common/soql-parser.lib/generated/SoqlParser';
 import { ParserRuleContext, Token } from 'antlr4ts';
 import { ParseTreeWalker, RuleNode } from 'antlr4ts/tree';
-import { SoqlParserListener } from '@salesforce/soql-common/lib/soql-parser/generated/SoqlParserListener';
+import { SoqlParserListener } from '@salesforce/soql-common/soql-parser.lib/generated/SoqlParserListener';
 
 interface InnerSoqlQueryInfo {
   soqlInnerQueryNode: ParserRuleContext;
@@ -158,7 +159,7 @@ class SoqlInnerQueriesListener implements SoqlParserListener {
   public enterSoqlGroupByExprs(ctx: SoqlGroupByExprsContext): void {
     const groupByFields: string[] = [];
 
-    ctx.soqlField().forEach((soqlField) => {
+    ctx.soqlField().forEach((soqlField: SoqlFieldContext) => {
       const soqlIdentifiers = soqlField.soqlIdentifier();
       if (soqlIdentifiers.length === 1) {
         groupByFields.push(soqlIdentifiers[0].text);
