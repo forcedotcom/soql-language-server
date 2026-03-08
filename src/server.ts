@@ -5,10 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { createConnection, ProposedFeatures } from 'vscode-languageserver/node';
 import {
-  createConnection,
   TextDocuments,
-  ProposedFeatures,
   InitializeParams,
   TextDocumentSyncKind,
   InitializeResult,
@@ -16,7 +15,7 @@ import {
   CompletionItem,
   DidChangeWatchedFilesParams,
   FileChangeType,
-  DocumentUri,
+  DocumentUri
 } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { Validator } from './validator';
@@ -25,7 +24,7 @@ import { completionsFor } from './completion';
 
 // Create a connection for the server, using Node's IPC as a transport.
 const connection = createConnection(ProposedFeatures.all);
-connection.sendNotification('soql/validate', 'createConnection');
+void connection.sendNotification('soql/validate', 'createConnection');
 
 let runQueryValidation: boolean;
 
@@ -40,18 +39,18 @@ connection.onInitialize((params: InitializeParams) => {
       textDocumentSync: TextDocumentSyncKind.Full, // sync full document for now
       completionProvider: {
         // resolveProvider: true,
-        triggerCharacters: [' '],
-      },
-    },
+        triggerCharacters: [' ']
+      }
+    }
   };
   return result;
 });
 
 function clearDiagnostics(uri: DocumentUri): void {
-  connection.sendDiagnostics({ uri, diagnostics: [] });
+  void connection.sendDiagnostics({ uri, diagnostics: [] });
 }
 
-documents.onDidClose((change) => {
+documents.onDidClose(change => {
   clearDiagnostics(change.document.uri);
 });
 
@@ -65,20 +64,20 @@ documents.onDidClose((change) => {
  */
 connection.onDidChangeWatchedFiles((watchedFiles: DidChangeWatchedFilesParams) => {
   const deletedUris = watchedFiles.changes
-    .filter((change) => change.type === FileChangeType.Deleted)
-    .map((change) => change.uri);
+    .filter(change => change.type === FileChangeType.Deleted)
+    .map(change => change.uri);
   deletedUris.forEach(clearDiagnostics);
 });
 
-documents.onDidChangeContent(async (change) => {
+documents.onDidChangeContent(async change => {
   const diagnostics = Validator.validateSoqlText(change.document);
   // clear syntax errors immediatly (don't wait on http call)
-  connection.sendDiagnostics({ uri: change.document.uri, diagnostics });
+  await connection.sendDiagnostics({ uri: change.document.uri, diagnostics });
 
   if (diagnostics.length === 0 && runQueryValidation) {
     const remoteDiagnostics = await Validator.validateLimit0Query(change.document, connection);
     if (remoteDiagnostics.length > 0) {
-      connection.sendDiagnostics({ uri: change.document.uri, diagnostics: remoteDiagnostics });
+      await connection.sendDiagnostics({ uri: change.document.uri, diagnostics: remoteDiagnostics });
     }
   }
 });

@@ -8,7 +8,7 @@ export { default as QueryValidationFeature } from './query-validation-feature';
 export { SoqlItemContext } from './completion';
 
 export const enum RequestTypes {
-  RunQuery = 'runQuery',
+  RunQuery = 'runQuery'
 }
 
 export interface RunQueryResponse {

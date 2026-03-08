@@ -12,7 +12,7 @@ import {
   SoqlParser,
   SoqlQueryContext,
   SoqlSelectColumnExprContext,
-  SoqlSemiJoinContext,
+  SoqlSemiJoinContext
 } from '@salesforce/soql-common/soql-parser.lib/generated/SoqlParser';
 import { ParserRuleContext, Token } from 'antlr4ts';
 import { ParseTreeWalker, RuleNode } from 'antlr4ts/tree';
@@ -72,7 +72,7 @@ class SoqlInnerQueriesListener implements SoqlParserListener {
    * @returns the array of queryinfos ordered from the innermost to the outermost
    */
   public findQueriesAt(atIndex: number): InnerSoqlQueryInfo[] {
-    const innerQueries = Array.from(this.innerSoqlQueries.values()).filter((query) =>
+    const innerQueries = Array.from(this.innerSoqlQueries.values()).filter(query =>
       this.queryContainsTokenIndex(query, atIndex)
     );
     const sortedQueries = innerQueries.sort((queryA, queryB) => queryB.select.tokenIndex - queryA.select.tokenIndex);
@@ -117,7 +117,7 @@ class SoqlInnerQueriesListener implements SoqlParserListener {
   public enterSoqlInnerQuery(ctx: SoqlInnerQueryContext): void {
     this.innerSoqlQueries.set(ctx.start.tokenIndex, {
       select: ctx.start,
-      soqlInnerQueryNode: ctx,
+      soqlInnerQueryNode: ctx
     });
   }
 
@@ -125,7 +125,7 @@ class SoqlInnerQueriesListener implements SoqlParserListener {
     this.innerSoqlQueries.set(ctx.start.tokenIndex, {
       select: ctx.start,
       isSemiJoin: true,
-      soqlInnerQueryNode: ctx,
+      soqlInnerQueryNode: ctx
     });
   }
 
@@ -180,7 +180,10 @@ class SoqlWhereFieldListener implements SoqlParserListener {
   private resultDistance = Number.MAX_VALUE;
   public result?: ParsedSoqlField;
 
-  public constructor(private readonly cursorTokenIndex: number, private sobject: string) {}
+  public constructor(
+    private readonly cursorTokenIndex: number,
+    private sobject: string
+  ) {}
 
   public enterEveryRule(ctx: ParserRuleContext): void {
     if (ctx.ruleContext.ruleIndex === SoqlParser.RULE_soqlWhereExpr) {
@@ -202,7 +205,7 @@ class SoqlWhereFieldListener implements SoqlParserListener {
           this.result = {
             sobjectName: this.sobject,
             fieldName: fieldComponents.join('.'),
-            operator,
+            operator
           };
         }
       }

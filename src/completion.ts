@@ -19,7 +19,7 @@ import {
   soqlFunctions,
   soqlOperators,
   soqlDateRangeLiterals,
-  soqlParametricDateRangeLiterals,
+  soqlParametricDateRangeLiterals
 } from './completion/soql-functions';
 import { SoqlCompletionErrorStrategy } from './completion/SoqlCompletionErrorStrategy';
 import { ParsedSoqlField, SoqlQueryAnalyzer } from './completion/soql-query-analysis';
@@ -33,7 +33,7 @@ const UPDATE_TRACKING = 'UPDATE TRACKING';
 const UPDATE_VIEWSTAT = 'UPDATE VIEWSTAT';
 const DEFAULT_SOBJECT = 'Object';
 
-const itemsForBuiltinFunctions = soqlFunctions.map((soqlFn) => newFunctionItem(soqlFn.name));
+const itemsForBuiltinFunctions = soqlFunctions.map(soqlFn => newFunctionItem(soqlFn.name));
 
 export function completionsFor(text: string, line: number, column: number): CompletionItem[] {
   const lexer = new SoqlLexer(new LowerCasingCharStream(parseHeaderComments(text).headerPaddedSoqlText));
@@ -45,7 +45,7 @@ export function completionsFor(text: string, line: number, column: number): Comp
   const parsedQuery = parser.soqlQuery();
   const completionTokenIndex = findCursorTokenIndex(tokenStream, {
     line,
-    column,
+    column
   });
 
   if (completionTokenIndex === undefined) {
@@ -93,7 +93,7 @@ function collectC3CompletionCandidates(
     SoqlLexer.PLUS,
     SoqlLexer.MINUS,
     SoqlLexer.COLON,
-    SoqlLexer.MINUS,
+    SoqlLexer.MINUS
   ]);
 
   core.preferredRules = new Set([
@@ -103,7 +103,7 @@ function collectC3CompletionCandidates(
     SoqlParser.RULE_soqlUpdateStatsClause,
     SoqlParser.RULE_soqlIdentifier,
     SoqlParser.RULE_soqlLiteralValue,
-    SoqlParser.RULE_soqlLikeLiteral,
+    SoqlParser.RULE_soqlLikeLiteral
   ]);
 
   return core.collectCandidates(completionTokenIndex, parsedQuery);
@@ -169,7 +169,7 @@ const fieldDependentOperators: Set<number> = new Set<number>([
   SoqlLexer.GT,
   SoqlLexer.INCLUDES,
   SoqlLexer.EXCLUDES,
-  SoqlLexer.LIKE,
+  SoqlLexer.LIKE
 ]);
 
 function generateCandidatesFromTokens(
@@ -195,7 +195,7 @@ function generateCandidatesFromTokens(
     const baseKeyword = tokenTypeToCandidateString(lexer, tokenType);
     if (!baseKeyword) continue;
 
-    const followingKeywords = followingTokens.map((t) => tokenTypeToCandidateString(lexer, t)).join(' ');
+    const followingKeywords = followingTokens.map(t => tokenTypeToCandidateString(lexer, t)).join(' ');
 
     let itemText = followingKeywords.length > 0 ? baseKeyword + ' ' + followingKeywords : baseKeyword;
 
@@ -211,7 +211,7 @@ function generateCandidatesFromTokens(
       if (soqlFieldExpr) {
         soqlItemContext = {
           sobjectName: soqlFieldExpr.sobjectName,
-          fieldName: soqlFieldExpr.fieldName,
+          fieldName: soqlFieldExpr.fieldName
         };
 
         const soqlOperator = soqlOperators[itemText];
@@ -263,7 +263,7 @@ function generateCandidatesFromRules(
   const innermostQueryInfo = queryInfos.length > 0 ? queryInfos[0] : undefined;
   const fromSObject = innermostQueryInfo?.sobjectName || DEFAULT_SOBJECT;
   const soqlItemContext: SoqlItemContext = {
-    sobjectName: fromSObject,
+    sobjectName: fromSObject
   };
   const isInnerQuery = queryInfos.length > 1;
   const relationshipName = isInnerQuery ? queryInfos[0].sobjectName : undefined;
@@ -293,13 +293,13 @@ function generateCandidatesFromRules(
             withSoqlContext(newFieldItem(SOBJECT_FIELDS_LABEL_PLACEHOLDER), {
               ...soqlItemContext,
               onlyTypes: ['id', 'reference'],
-              dontShowRelationshipField: true,
+              dontShowRelationshipField: true
             })
           );
         } else if (lastRuleId === SoqlParser.RULE_soqlSelectExpr) {
           const isCursorAtFunctionExpr: boolean = isCursorAfter(tokenStream, tokenIndex, [
             [SoqlLexer.IDENTIFIER, SoqlLexer.COUNT],
-            [SoqlLexer.LPAREN],
+            [SoqlLexer.LPAREN]
           ]); // inside a function expression (i.e.: "SELECT AVG(|" )
 
           // SELECT | FROM Xyz
@@ -309,7 +309,7 @@ function generateCandidatesFromRules(
                 withSoqlContext(newFieldItem(RELATIONSHIP_FIELDS_PLACEHOLDER), {
                   ...soqlItemContext,
                   sobjectName: parentQuerySObject || '',
-                  relationshipName,
+                  relationshipName
                 })
               );
             } else {
@@ -326,7 +326,7 @@ function generateCandidatesFromRules(
             // and not an IDENTIFIER like all other functions
             const functionNameToken = searchTokenBeforeCursor(tokenStream, tokenIndex, [
               SoqlLexer.IDENTIFIER,
-              SoqlLexer.COUNT,
+              SoqlLexer.COUNT
             ]);
             if (functionNameToken) {
               const soqlFn = soqlFunctionsByName[functionNameToken?.text || ''];
@@ -341,14 +341,14 @@ function generateCandidatesFromRules(
         // ... GROUP BY |
         else if (lastRuleId === SoqlParser.RULE_soqlGroupByExprs && tokenIndex === ruleData.startTokenIndex) {
           const selectedFields = innermostQueryInfo?.selectedFields || [];
-          const groupedByFields = (innermostQueryInfo?.groupByFields || []).map((f) => f.toLowerCase());
-          const groupFieldDifference = selectedFields.filter((f) => !groupedByFields.includes(f.toLowerCase()));
+          const groupedByFields = (innermostQueryInfo?.groupByFields || []).map(f => f.toLowerCase());
+          const groupFieldDifference = selectedFields.filter(f => !groupedByFields.includes(f.toLowerCase()));
 
           completionItems.push(
             withSoqlContext(newFieldItem(SOBJECT_FIELDS_LABEL_PLACEHOLDER), {
               sobjectName: fromSObject,
               onlyGroupable: true,
-              mostLikelyItems: groupFieldDifference.length > 0 ? groupFieldDifference : undefined,
+              mostLikelyItems: groupFieldDifference.length > 0 ? groupFieldDifference : undefined
             })
           );
         }
@@ -361,11 +361,11 @@ function generateCandidatesFromRules(
                   ...soqlItemContext,
                   sobjectName: parentQuerySObject || '',
                   relationshipName,
-                  onlySortable: true,
+                  onlySortable: true
                 })
               : withSoqlContext(newFieldItem(SOBJECT_FIELDS_LABEL_PLACEHOLDER), {
                   ...soqlItemContext,
-                  onlySortable: true,
+                  onlySortable: true
                 })
           );
         }
@@ -382,7 +382,7 @@ function generateCandidatesFromRules(
         ) {
           completionItems.push(
             withSoqlContext(newFieldItem(SOBJECT_FIELDS_LABEL_PLACEHOLDER), {
-              sobjectName: fromSObject,
+              sobjectName: fromSObject
             })
           );
         }
@@ -414,7 +414,7 @@ function handleSpecialCases(
   }
 
   // Provide smart snippet for `SELECT`:
-  if (completionItems.some((item) => item.label === 'SELECT')) {
+  if (completionItems.some(item => item.label === 'SELECT')) {
     if (!isCursorBefore(tokenStream, tokenIndex, [[SoqlLexer.FROM]])) {
       completionItems.push(newSnippetItem('SELECT ... FROM ...', 'SELECT $2 FROM $1'));
     }
@@ -434,7 +434,7 @@ function itemsForFromExpression(soqlQueryAnalyzer: SoqlQueryAnalyzer, tokenIndex
       // NOTE: might need to pass multiple outter SObject (nested) names ?
       completionItems.push(
         withSoqlContext(newObjectItem(RELATIONSHIPS_PLACEHOLDER), {
-          sobjectName,
+          sobjectName
         })
       );
     }
@@ -489,7 +489,7 @@ function searchTokenBeforeCursor(
 function newKeywordItem(text: string): CompletionItem {
   return {
     label: text,
-    kind: CompletionItemKind.Keyword,
+    kind: CompletionItemKind.Keyword
   };
 }
 function newFunctionItem(text: string): CompletionItem {
@@ -497,7 +497,7 @@ function newFunctionItem(text: string): CompletionItem {
     label: text + '(...)',
     kind: CompletionItemKind.Function,
     insertText: text + '($1)',
-    insertTextFormat: InsertTextFormat.Snippet,
+    insertTextFormat: InsertTextFormat.Snippet
   };
 }
 
@@ -526,7 +526,7 @@ const newCompletionItem = (
 ): CompletionItem => ({
   label: text,
   kind,
-  ...extraOptions,
+  ...extraOptions
 });
 
 const newFieldItem = (text: string, extraOptions?: Partial<CompletionItem>): CompletionItem =>
@@ -540,39 +540,39 @@ const newSnippetItem = (label: string, snippet: string, extraOptions?: Partial<C
   newCompletionItem(label, CompletionItemKind.Snippet, {
     insertText: snippet,
     insertTextFormat: InsertTextFormat.Snippet,
-    ...extraOptions,
+    ...extraOptions
   });
 
 function createItemsForLiterals(soqlFieldExpr: ParsedSoqlField): CompletionItem[] {
   const soqlContext = {
     sobjectName: soqlFieldExpr.sobjectName,
-    fieldName: soqlFieldExpr.fieldName,
+    fieldName: soqlFieldExpr.fieldName
   };
 
   const items: CompletionItem[] = [
     withSoqlContext(newCompletionItem('TRUE', CompletionItemKind.Value), {
       ...soqlContext,
-      ...{ onlyTypes: ['boolean'] },
+      ...{ onlyTypes: ['boolean'] }
     }),
     withSoqlContext(newCompletionItem('FALSE', CompletionItemKind.Value), {
       ...soqlContext,
-      ...{ onlyTypes: ['boolean'] },
+      ...{ onlyTypes: ['boolean'] }
     }),
     withSoqlContext(newSnippetItem('nnn', '${1:123}'), {
       ...soqlContext,
-      ...{ onlyTypes: ['int'] },
+      ...{ onlyTypes: ['int'] }
     }),
     withSoqlContext(newSnippetItem('nnn.nnn', '${1:123.456}'), {
       ...soqlContext,
-      ...{ onlyTypes: ['double'] },
+      ...{ onlyTypes: ['double'] }
     }),
     withSoqlContext(newSnippetItem('ISOCODEnnn.nn', '${1|USD,EUR,JPY,CNY,CHF|}${2:999.99}'), {
       ...soqlContext,
-      ...{ onlyTypes: ['currency'] },
+      ...{ onlyTypes: ['currency'] }
     }),
     withSoqlContext(newSnippetItem('abc123', "'${1:abc123}'"), {
       ...soqlContext,
-      ...{ onlyTypes: ['string'] },
+      ...{ onlyTypes: ['string'] }
     }),
     withSoqlContext(
       newSnippetItem(
@@ -592,21 +592,21 @@ function createItemsForLiterals(soqlFieldExpr: ParsedSoqlField): CompletionItem[
       ),
       { ...soqlContext, ...{ onlyTypes: ['datetime'] } }
     ),
-    ...soqlDateRangeLiterals.map((k) =>
+    ...soqlDateRangeLiterals.map(k =>
       withSoqlContext(newCompletionItem(k, CompletionItemKind.Value), {
         ...soqlContext,
-        ...{ onlyTypes: ['date', 'datetime'] },
+        ...{ onlyTypes: ['date', 'datetime'] }
       })
     ),
-    ...soqlParametricDateRangeLiterals.map((k) =>
+    ...soqlParametricDateRangeLiterals.map(k =>
       withSoqlContext(newSnippetItem(k, k.replace(':n', ':${1:nn}') + '$0'), {
         ...soqlContext,
-        ...{ onlyTypes: ['date', 'datetime'] },
+        ...{ onlyTypes: ['date', 'datetime'] }
       })
     ),
 
     // Give the LSP client a chance to add additional literals:
-    withSoqlContext(newConstantItem(LITERAL_VALUES_FOR_FIELD), soqlContext),
+    withSoqlContext(newConstantItem(LITERAL_VALUES_FOR_FIELD), soqlContext)
   ];
 
   const notNillableOperator = Boolean(
@@ -616,7 +616,7 @@ function createItemsForLiterals(soqlFieldExpr: ParsedSoqlField): CompletionItem[
     items.push(
       withSoqlContext(newKeywordItem('NULL'), {
         ...soqlContext,
-        ...{ onlyNillable: true },
+        ...{ onlyNillable: true }
       })
     );
   }

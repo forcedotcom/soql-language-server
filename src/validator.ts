@@ -37,7 +37,7 @@ export class Validator {
     const parser = SOQLParser({
       isApex: true,
       isMultiCurrencyEnabled: true,
-      apiVersion: 50.0,
+      apiVersion: 50.0
     });
     const result = parser.parseQuery(parseHeaderComments(textDocument.getText()).headerPaddedSoqlText);
     if (!result.getSuccess()) {
@@ -46,10 +46,10 @@ export class Validator {
           severity: DiagnosticSeverity.Error,
           range: {
             start: textDocument.positionAt(error.getToken()?.startIndex as number),
-            end: textDocument.positionAt(error.getToken()?.stopIndex as number),
+            end: textDocument.positionAt(error.getToken()?.stopIndex as number)
           },
           message: error.getMessage(),
-          source: 'soql',
+          source: 'soql'
         });
       });
     }
@@ -73,7 +73,7 @@ export class Validator {
         severity: DiagnosticSeverity.Error,
         range: errorRange || documentRange(textDocument),
         message: errorMessage,
-        source: 'soql',
+        source: 'soql'
       });
     }
     return diagnostics;
@@ -104,8 +104,8 @@ function extractErrorRange(
       errorMessage: errorMessage.replace(findPositionRegex, 'Error:'),
       errorRange: {
         start: { line, character },
-        end: { line, character: character + cause.length },
-      },
+        end: { line, character: character + cause.length }
+      }
     };
   } else {
     return { errorMessage, errorRange: undefined };
@@ -115,6 +115,6 @@ function extractErrorRange(
 function documentRange(textDocument: TextDocument): Range {
   return {
     start: { line: 0, character: 0 },
-    end: { line: textDocument.lineCount, character: 0 },
+    end: { line: textDocument.lineCount, character: 0 }
   };
 }

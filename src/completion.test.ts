@@ -12,13 +12,13 @@ const SELECT_SNIPPET = {
   kind: CompletionItemKind.Snippet,
   label: 'SELECT ... FROM ...',
   insertText: 'SELECT $2 FROM $1',
-  insertTextFormat: InsertTextFormat.Snippet,
+  insertTextFormat: InsertTextFormat.Snippet
 };
 const INNER_SELECT_SNIPPET = {
   kind: CompletionItemKind.Snippet,
   label: '(SELECT ... FROM ...)',
   insertText: '(SELECT $2 FROM $1)',
-  insertTextFormat: InsertTextFormat.Snippet,
+  insertTextFormat: InsertTextFormat.Snippet
 };
 
 const typesForLTGTOperators = [
@@ -33,7 +33,7 @@ const typesForLTGTOperators = [
   'string',
   'textarea',
   'time',
-  'url',
+  'url'
 ];
 const expectedSoqlContextByKeyword: {
   [key: string]: Partial<SoqlItemContext>;
@@ -44,7 +44,7 @@ const expectedSoqlContextByKeyword: {
   '>=': { onlyTypes: typesForLTGTOperators },
   'INCLUDES (': { onlyTypes: ['multipicklist'] },
   'EXCLUDES (': { onlyTypes: ['multipicklist'] },
-  LIKE: { onlyTypes: ['string', 'textarea', 'time'] },
+  LIKE: { onlyTypes: ['string', 'textarea', 'time'] }
 };
 
 function newLiteralItem(
@@ -58,8 +58,8 @@ function newLiteralItem(
     kind,
     ...extraOptions,
     data: {
-      soqlContext: soqlItemContext,
-    },
+      soqlContext: soqlItemContext
+    }
   };
 }
 function expectedItemsForLiterals(soqlContext: SoqlItemContext, nillableOperator: boolean): CompletionItem[] {
@@ -69,25 +69,25 @@ function expectedItemsForLiterals(soqlContext: SoqlItemContext, nillableOperator
     newLiteralItem({ ...soqlContext, ...{ onlyTypes: ['boolean'] } }, CompletionItemKind.Value, 'FALSE'),
     newLiteralItem({ ...soqlContext, ...{ onlyTypes: ['int'] } }, CompletionItemKind.Snippet, 'nnn', {
       insertText: '${1:123}',
-      insertTextFormat: InsertTextFormat.Snippet,
+      insertTextFormat: InsertTextFormat.Snippet
     }),
     newLiteralItem({ ...soqlContext, ...{ onlyTypes: ['double'] } }, CompletionItemKind.Snippet, 'nnn.nnn', {
       insertText: '${1:123.456}',
-      insertTextFormat: InsertTextFormat.Snippet,
+      insertTextFormat: InsertTextFormat.Snippet
     }),
     newLiteralItem({ ...soqlContext, ...{ onlyTypes: ['currency'] } }, CompletionItemKind.Snippet, 'ISOCODEnnn.nn', {
       insertText: '${1|USD,EUR,JPY,CNY,CHF|}${2:999.99}',
-      insertTextFormat: InsertTextFormat.Snippet,
+      insertTextFormat: InsertTextFormat.Snippet
     }),
     newLiteralItem({ ...soqlContext, ...{ onlyTypes: ['string'] } }, CompletionItemKind.Snippet, 'abc123', {
       insertText: "'${1:abc123}'",
-      insertTextFormat: InsertTextFormat.Snippet,
+      insertTextFormat: InsertTextFormat.Snippet
     }),
     newLiteralItem({ ...soqlContext, ...{ onlyTypes: ['date'] } }, CompletionItemKind.Snippet, 'YYYY-MM-DD', {
       insertText: '${1:${CURRENT_YEAR}}-${2:${CURRENT_MONTH}}-${3:${CURRENT_DATE}}$0',
       insertTextFormat: InsertTextFormat.Snippet,
       preselect: true,
-      sortText: ' YYYY-MM-DD',
+      sortText: ' YYYY-MM-DD'
     }),
     newLiteralItem(
       { ...soqlContext, ...{ onlyTypes: ['datetime'] } },
@@ -98,18 +98,18 @@ function expectedItemsForLiterals(soqlContext: SoqlItemContext, nillableOperator
           '${1:${CURRENT_YEAR}}-${2:${CURRENT_MONTH}}-${3:${CURRENT_DATE}}T${4:${CURRENT_HOUR}}:${5:${CURRENT_MINUTE}}:${6:${CURRENT_SECOND}}Z$0',
         insertTextFormat: InsertTextFormat.Snippet,
         preselect: true,
-        sortText: ' YYYY-MM-DDThh:mm:ssZ',
+        sortText: ' YYYY-MM-DDThh:mm:ssZ'
       }
     ),
-    ...soqlDateRangeLiterals.map((k) =>
+    ...soqlDateRangeLiterals.map(k =>
       newLiteralItem({ ...soqlContext, ...{ onlyTypes: ['date', 'datetime'] } }, CompletionItemKind.Value, k)
     ),
-    ...soqlParametricDateRangeLiterals.map((k) =>
+    ...soqlParametricDateRangeLiterals.map(k =>
       newLiteralItem({ ...soqlContext, ...{ onlyTypes: ['date', 'datetime'] } }, CompletionItemKind.Snippet, k, {
         insertText: k.replace(':n', ':${1:nn}') + '$0',
-        insertTextFormat: InsertTextFormat.Snippet,
+        insertTextFormat: InsertTextFormat.Snippet
       })
-    ),
+    )
   ];
 
   if (nillableOperator) {
@@ -123,30 +123,30 @@ function newKeywordItem(word: string, extraOptions: Partial<CompletionItem> = {}
   return Object.assign(
     {
       kind: CompletionItemKind.Keyword,
-      label: word,
+      label: word
     },
     extraOptions
   );
 }
 
 function newKeywordItems(...words: string[]): CompletionItem[] {
-  return words.map((s) => ({
+  return words.map(s => ({
     kind: CompletionItemKind.Keyword,
-    label: s,
+    label: s
   }));
 }
 
 function newKeywordItemsWithContext(sobjectName: string, fieldName: string, words: string[]): CompletionItem[] {
-  return words.map((s) => ({
+  return words.map(s => ({
     kind: CompletionItemKind.Keyword,
     label: s,
     data: {
       soqlContext: {
         sobjectName,
         fieldName,
-        ...expectedSoqlContextByKeyword[s],
-      },
-    },
+        ...expectedSoqlContextByKeyword[s]
+      }
+    }
   }));
 }
 
@@ -156,7 +156,7 @@ function newFunctionCallItem(name: string, soqlItemContext?: SoqlItemContext): C
       kind: CompletionItemKind.Function,
       label: name + '(...)',
       insertText: name + '($1)',
-      insertTextFormat: InsertTextFormat.Snippet,
+      insertTextFormat: InsertTextFormat.Snippet
     },
     soqlItemContext ? { data: { soqlContext: soqlItemContext } } : {}
   );
@@ -164,8 +164,8 @@ function newFunctionCallItem(name: string, soqlItemContext?: SoqlItemContext): C
 const expectedSObjectCompletions: CompletionItem[] = [
   {
     kind: CompletionItemKind.Class,
-    label: '__SOBJECTS_PLACEHOLDER',
-  },
+    label: '__SOBJECTS_PLACEHOLDER'
+  }
 ];
 
 function relationshipsItem(sobjectName: string): CompletionItem {
@@ -174,9 +174,9 @@ function relationshipsItem(sobjectName: string): CompletionItem {
     label: '__RELATIONSHIPS_PLACEHOLDER',
     data: {
       soqlContext: {
-        sobjectName,
-      },
-    },
+        sobjectName
+      }
+    }
   };
 }
 
@@ -231,11 +231,11 @@ describe('Code Completion on SELECT ...', () => {
             'picklist',
             'reference',
             'textarea',
-            'url',
-          ],
-        },
-      },
-    },
+            'url'
+          ]
+        }
+      }
+    }
   ]);
 });
 
@@ -264,7 +264,7 @@ describe('Code Completion on nested select fields: SELECT ... FROM XYZ', () => {
   // So we expect it on completions only right after "SELECT"
   validateCompletionsFor('SELECT | (SELECT bar FROM Bar) FROM Foo', [
     newKeywordItem('COUNT()'),
-    ...sobjectsFieldsFor('Foo'),
+    ...sobjectsFieldsFor('Foo')
   ]);
   validateCompletionsFor('SELECT (SELECT bar FROM Bar),| FROM Foo', sobjectsFieldsFor('Foo'));
   validateCompletionsFor('SELECT (SELECT bar FROM Bar), | FROM Foo', sobjectsFieldsFor('Foo'));
@@ -273,7 +273,7 @@ describe('Code Completion on nested select fields: SELECT ... FROM XYZ', () => {
 
   // TODO: improve ANTLR error strategy for this case:
   validateCompletionsFor('SELECT foo, (SELECT |, bar FROM Bars) FROM Foo', [...relationshipFieldsFor('Foo', 'Bars')], {
-    skip: true,
+    skip: true
   });
   validateCompletionsFor('SELECT foo, (SELECT bar, | FROM Bars) FROM Foo', relationshipFieldsFor('Foo', 'Bars'));
 
@@ -300,7 +300,7 @@ describe('Code Completion on nested select fields: SELECT ... FROM XYZ', () => {
   validateCompletionsFor('SELECT foo, (|) FROM Foo', newKeywordItems('SELECT').concat(SELECT_SNIPPET));
 
   validateCompletionsFor('SELECT foo, (SELECT bar FROM Bar), (SELECT | FROM Xyzs) FROM Foo', [
-    ...relationshipFieldsFor('Foo', 'Xyzs'),
+    ...relationshipFieldsFor('Foo', 'Xyzs')
   ]);
   validateCompletionsFor(
     'SELECT foo, (SELECT bar FROM Bar), (SELECT xyz, | FROM Xyzs) FROM Foo',
@@ -315,7 +315,7 @@ describe('Code Completion on nested select fields: SELECT ... FROM XYZ', () => {
     sobjectsFieldsFor('Foo')
   );
   validateCompletionsFor('SELECT foo, (SELECT | FROM Bars), (SELECT xyz FROM Xyz) FROM Foo', [
-    ...relationshipFieldsFor('Foo', 'Bars'),
+    ...relationshipFieldsFor('Foo', 'Bars')
   ]);
 
   // With a semi-join (SELECT in WHERE clause):
@@ -383,8 +383,8 @@ describe('Code Completion for ORDER BY', () => {
     {
       kind: CompletionItemKind.Field,
       label: '__SOBJECT_FIELDS_PLACEHOLDER',
-      data: { soqlContext: { sobjectName: 'Account', onlySortable: true } },
-    },
+      data: { soqlContext: { sobjectName: 'Account', onlySortable: true } }
+    }
   ]);
 
   // Nested, parent-child relationships:
@@ -392,8 +392,8 @@ describe('Code Completion for ORDER BY', () => {
     {
       kind: CompletionItemKind.Field,
       label: '__RELATIONSHIP_FIELDS_PLACEHOLDER',
-      data: { soqlContext: { sobjectName: 'Account', relationshipName: 'Contacts', onlySortable: true } },
-    },
+      data: { soqlContext: { sobjectName: 'Account', relationshipName: 'Contacts', onlySortable: true } }
+    }
   ]);
 });
 
@@ -402,13 +402,13 @@ describe('Code Completion for GROUP BY', () => {
     {
       kind: CompletionItemKind.Field,
       label: '__SOBJECT_FIELDS_PLACEHOLDER',
-      data: { soqlContext: { sobjectName: 'Account', onlyGroupable: true } },
+      data: { soqlContext: { sobjectName: 'Account', onlyGroupable: true } }
     },
-    ...newKeywordItems('ROLLUP', 'CUBE'),
+    ...newKeywordItems('ROLLUP', 'CUBE')
   ]);
 
   validateCompletionsFor('SELECT id FROM Account GROUP BY id |', [
-    ...newKeywordItems('FOR', 'OFFSET', 'HAVING', 'LIMIT', 'ORDER BY', 'UPDATE TRACKING', 'UPDATE VIEWSTAT'),
+    ...newKeywordItems('FOR', 'OFFSET', 'HAVING', 'LIMIT', 'ORDER BY', 'UPDATE TRACKING', 'UPDATE VIEWSTAT')
   ]);
 
   // When there are aggregated fields on SELECT, the GROUP BY clause
@@ -422,11 +422,11 @@ describe('Code Completion for GROUP BY', () => {
         soqlContext: {
           sobjectName: 'Account',
           onlyGroupable: true,
-          mostLikelyItems: ['id'],
-        },
-      },
+          mostLikelyItems: ['id']
+        }
+      }
     },
-    ...newKeywordItems('ROLLUP', 'CUBE'),
+    ...newKeywordItems('ROLLUP', 'CUBE')
   ]);
   validateCompletionsFor('SELECT id, MAX(id2), AVG(AnnualRevenue) FROM Account GROUP BY |', [
     {
@@ -436,11 +436,11 @@ describe('Code Completion for GROUP BY', () => {
         soqlContext: {
           sobjectName: 'Account',
           onlyGroupable: true,
-          mostLikelyItems: ['id'],
-        },
-      },
+          mostLikelyItems: ['id']
+        }
+      }
     },
-    ...newKeywordItems('ROLLUP', 'CUBE'),
+    ...newKeywordItems('ROLLUP', 'CUBE')
   ]);
 
   validateCompletionsFor('SELECT ID, Name, MAX(id3), AVG(AnnualRevenue) FROM Account GROUP BY id, |', [
@@ -451,10 +451,10 @@ describe('Code Completion for GROUP BY', () => {
         soqlContext: {
           sobjectName: 'Account',
           onlyGroupable: true,
-          mostLikelyItems: ['Name'],
-        },
-      },
-    },
+          mostLikelyItems: ['Name']
+        }
+      }
+    }
     // NOTE: ROLLUP and CUBE not expected unless cursor right after GROUP BY
   ]);
 
@@ -469,11 +469,11 @@ describe('Code Completion for GROUP BY', () => {
           soqlContext: {
             sobjectName: 'Account',
             onlyGroupable: true,
-            mostLikelyItems: ['Id', 'Name'],
-          },
-        },
+            mostLikelyItems: ['Id', 'Name']
+          }
+        }
       },
-      ...newKeywordItems('ROLLUP', 'CUBE'),
+      ...newKeywordItems('ROLLUP', 'CUBE')
     ]
   );
 });
@@ -481,7 +481,7 @@ describe('Code Completion for GROUP BY', () => {
 describe('Some keyword candidates after FROM clause', () => {
   validateCompletionsFor('SELECT id FROM Account |', [
     newKeywordItem('WHERE', { preselect: true }),
-    ...newKeywordItems('FOR', 'OFFSET', 'LIMIT', 'ORDER BY', 'GROUP BY', 'WITH', 'UPDATE TRACKING', 'UPDATE VIEWSTAT'),
+    ...newKeywordItems('FOR', 'OFFSET', 'LIMIT', 'ORDER BY', 'GROUP BY', 'WITH', 'UPDATE TRACKING', 'UPDATE VIEWSTAT')
   ]);
 
   validateCompletionsFor('SELECT id FROM Account FOR |', newKeywordItems('VIEW', 'REFERENCE'));
@@ -491,7 +491,7 @@ describe('Some keyword candidates after FROM clause', () => {
   // NOTE: GROUP BY not supported on nested (parent-child relationship) SELECTs
   validateCompletionsFor('SELECT Account.Name, (SELECT FirstName, LastName FROM Contacts |) FROM Account', [
     newKeywordItem('WHERE', { preselect: true }),
-    ...newKeywordItems('FOR', 'OFFSET', 'LIMIT', 'ORDER BY', 'WITH', 'UPDATE TRACKING', 'UPDATE VIEWSTAT'),
+    ...newKeywordItems('FOR', 'OFFSET', 'LIMIT', 'ORDER BY', 'WITH', 'UPDATE TRACKING', 'UPDATE VIEWSTAT')
   ]);
 
   validateCompletionsFor('SELECT id FROM Account LIMIT |', []);
@@ -503,12 +503,12 @@ describe('WHERE clause', () => {
     {
       kind: CompletionItemKind.Field,
       label: '__SOBJECT_FIELDS_PLACEHOLDER',
-      data: { soqlContext: { sobjectName: 'Account' } },
-    },
+      data: { soqlContext: { sobjectName: 'Account' } }
+    }
   ]);
   validateCompletionsFor('SELECT id FROM Account WHERE Name |', [
     ...newKeywordItems('IN (', 'NOT IN (', '=', '!=', '<>'),
-    ...newKeywordItemsWithContext('Account', 'Name', ['INCLUDES (', 'EXCLUDES (', '<', '<=', '>', '>=', 'LIKE']),
+    ...newKeywordItemsWithContext('Account', 'Name', ['INCLUDES (', 'EXCLUDES (', '<', '<=', '>', '>=', 'LIKE'])
   ]);
 
   validateCompletionsFor('SELECT id FROM Account WHERE Type IN (|', [
@@ -517,10 +517,10 @@ describe('WHERE clause', () => {
     ...expectedItemsForLiterals(
       {
         sobjectName: 'Account',
-        fieldName: 'Type',
+        fieldName: 'Type'
       },
       true
-    ),
+    )
   ]);
 
   validateCompletionsFor(
@@ -528,7 +528,7 @@ describe('WHERE clause', () => {
     expectedItemsForLiterals(
       {
         sobjectName: 'Account',
-        fieldName: 'Type',
+        fieldName: 'Type'
       },
       true
     )
@@ -539,10 +539,10 @@ describe('WHERE clause', () => {
     ...expectedItemsForLiterals(
       {
         sobjectName: 'Account',
-        fieldName: 'Type',
+        fieldName: 'Type'
       },
       true
-    ),
+    )
   ]);
 
   // NOTE: Unlike IN(), INCLUDES()/EXCLUDES() never support NULL in the list
@@ -551,7 +551,7 @@ describe('WHERE clause', () => {
     expectedItemsForLiterals(
       {
         sobjectName: 'QuickText',
-        fieldName: 'Channel',
+        fieldName: 'Channel'
       },
       false
     )
@@ -562,7 +562,7 @@ describe('WHERE clause', () => {
     expectedItemsForLiterals(
       {
         sobjectName: 'QuickText',
-        fieldName: 'Channel',
+        fieldName: 'Channel'
       },
       false
     )
@@ -572,7 +572,7 @@ describe('WHERE clause', () => {
     expectedItemsForLiterals(
       {
         sobjectName: 'Account',
-        fieldName: 'Type',
+        fieldName: 'Type'
       },
       true
     )
@@ -582,7 +582,7 @@ describe('WHERE clause', () => {
     expectedItemsForLiterals(
       {
         sobjectName: 'Account',
-        fieldName: 'Name',
+        fieldName: 'Name'
       },
       true
     )
@@ -592,7 +592,7 @@ describe('WHERE clause', () => {
     expectedItemsForLiterals(
       {
         sobjectName: 'Account',
-        fieldName: 'Name',
+        fieldName: 'Name'
       },
       false
     )
@@ -602,7 +602,7 @@ describe('WHERE clause', () => {
     expectedItemsForLiterals(
       {
         sobjectName: 'Account',
-        fieldName: 'Type',
+        fieldName: 'Type'
       },
       true
     )
@@ -613,7 +613,7 @@ describe('WHERE clause', () => {
     expectedItemsForLiterals(
       {
         sobjectName: 'Account',
-        fieldName: 'LastActivityDate',
+        fieldName: 'LastActivityDate'
       },
       false
     )
@@ -623,7 +623,7 @@ describe('WHERE clause', () => {
     expectedItemsForLiterals(
       {
         sobjectName: 'Account',
-        fieldName: 'LastActivityDate',
+        fieldName: 'LastActivityDate'
       },
       false
     )
@@ -635,8 +635,8 @@ describe('SELECT Function expressions', () => {
     {
       kind: CompletionItemKind.Field,
       label: '__SOBJECT_FIELDS_PLACEHOLDER',
-      data: { soqlContext: { sobjectName: 'Account' } },
-    },
+      data: { soqlContext: { sobjectName: 'Account' } }
+    }
   ]);
 
   validateCompletionsFor('SELECT AVG(|) FROM Account', [
@@ -647,10 +647,10 @@ describe('SELECT Function expressions', () => {
         soqlContext: {
           sobjectName: 'Account',
           onlyAggregatable: true,
-          onlyTypes: ['double', 'int', 'currency', 'percent'],
-        },
-      },
-    },
+          onlyTypes: ['double', 'int', 'currency', 'percent']
+        }
+      }
+    }
   ]);
 
   // COUNT is treated differently, always worth testing it separately
@@ -679,11 +679,11 @@ describe('SELECT Function expressions', () => {
             'picklist',
             'reference',
             'textarea',
-            'url',
-          ],
-        },
-      },
-    },
+            'url'
+          ]
+        }
+      }
+    }
   ]);
 
   validateCompletionsFor('SELECT MAX(|) FROM Account', [
@@ -712,11 +712,11 @@ describe('SELECT Function expressions', () => {
             'picklist',
             'reference',
             'textarea',
-            'url',
-          ],
-        },
-      },
-    },
+            'url'
+          ]
+        }
+      }
+    }
   ]);
 
   validateCompletionsFor('SELECT AVG(| FROM Account', [
@@ -727,10 +727,10 @@ describe('SELECT Function expressions', () => {
         soqlContext: {
           sobjectName: 'Account',
           onlyAggregatable: true,
-          onlyTypes: ['double', 'int', 'currency', 'percent'],
-        },
-      },
-    },
+          onlyTypes: ['double', 'int', 'currency', 'percent']
+        }
+      }
+    }
   ]);
 
   validateCompletionsFor('SELECT AVG(|), Id FROM Account', [
@@ -741,10 +741,10 @@ describe('SELECT Function expressions', () => {
         soqlContext: {
           sobjectName: 'Account',
           onlyAggregatable: true,
-          onlyTypes: ['double', 'int', 'currency', 'percent'],
-        },
-      },
-    },
+          onlyTypes: ['double', 'int', 'currency', 'percent']
+        }
+      }
+    }
   ]);
   validateCompletionsFor('SELECT Id, AVG(|) FROM Account', [
     {
@@ -754,10 +754,10 @@ describe('SELECT Function expressions', () => {
         soqlContext: {
           sobjectName: 'Account',
           onlyAggregatable: true,
-          onlyTypes: ['double', 'int', 'currency', 'percent'],
-        },
-      },
-    },
+          onlyTypes: ['double', 'int', 'currency', 'percent']
+        }
+      }
+    }
   ]);
 
   // NOTE: cursor is right BEFORE the function expression:
@@ -773,8 +773,8 @@ describe('Code Completion on "semi-join" (SELECT)', () => {
     {
       kind: CompletionItemKind.Field,
       label: '__SOBJECT_FIELDS_PLACEHOLDER',
-      data: { soqlContext: { sobjectName: 'Foo', onlyTypes: ['id', 'reference'], dontShowRelationshipField: true } },
-    },
+      data: { soqlContext: { sobjectName: 'Foo', onlyTypes: ['id', 'reference'], dontShowRelationshipField: true } }
+    }
   ]);
 
   // NOTE: The SELECT of a semi-join can only have one field, thus
@@ -828,8 +828,8 @@ function validateCompletionsFor(
 
     // NOTE: we don't use Sets here because when there are failures, the error
     // message is not useful
-    expectedItems.forEach((item) => expect(completions).toContainEqual(item));
-    completions.forEach((item) => expect(expectedItems).toContainEqual(item));
+    expectedItems.forEach(item => expect(completions).toContainEqual(item));
+    completions.forEach(item => expect(expectedItems).toContainEqual(item));
   });
 }
 
@@ -846,7 +846,7 @@ function sobjectsFieldsFor(sobjectName: string): CompletionItem[] {
     {
       kind: CompletionItemKind.Field,
       label: '__SOBJECT_FIELDS_PLACEHOLDER',
-      data: { soqlContext: { sobjectName } },
+      data: { soqlContext: { sobjectName } }
     },
     ...newKeywordItems('TYPEOF'),
     newFunctionCallItem('AVG'),
@@ -855,7 +855,7 @@ function sobjectsFieldsFor(sobjectName: string): CompletionItem[] {
     newFunctionCallItem('SUM'),
     newFunctionCallItem('COUNT'),
     newFunctionCallItem('COUNT_DISTINCT'),
-    INNER_SELECT_SNIPPET,
+    INNER_SELECT_SNIPPET
   ];
 }
 
@@ -864,8 +864,8 @@ function relationshipFieldsFor(sobjectName: string, relationshipName?: string): 
     {
       kind: CompletionItemKind.Field,
       label: '__RELATIONSHIP_FIELDS_PLACEHOLDER',
-      data: { soqlContext: { sobjectName, relationshipName } },
+      data: { soqlContext: { sobjectName, relationshipName } }
     },
-    ...newKeywordItems('TYPEOF'),
+    ...newKeywordItems('TYPEOF')
   ];
 }

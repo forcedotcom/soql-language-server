@@ -4,7 +4,12 @@
   "extends": ["eslint-config-salesforce-typescript"],
   "rules": {
     "no-shadow": "off",
-    "@typescript-eslint/no-shadow": "error"
+    "@typescript-eslint/no-shadow": "error",
+    "@typescript-eslint/no-unused-vars": ["error", { "argsIgnorePattern": "^_" }],
+    "@typescript-eslint/quotes": "off",
+    "@typescript-eslint/member-delimiter-style": "off",
+    "@typescript-eslint/type-annotation-spacing": "off",
+    "jsdoc/newline-after-description": "off"
   }
 }
 

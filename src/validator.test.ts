@@ -25,7 +25,7 @@ function createMockClientConnection(
       params: any
     ): { result: RunQuerySuccessResponse } | { error: RunQueryErrorResponse } => response,
     // eslint-disable-next-line no-console,@typescript-eslint/no-unsafe-assignment
-    console: { log: console.log } as RemoteConsole,
+    console: { log: console.log } as RemoteConsole
   };
 }
 
@@ -49,8 +49,8 @@ describe('Validator', () => {
           result: {
             done: true,
             records: [],
-            totalSize: 0,
-          },
+            totalSize: 0
+          }
         })
       );
       expect(diagnostics.length).toEqual(0);
@@ -65,8 +65,8 @@ describe('Validator', () => {
           error: {
             name: 'INVALID_FIELD',
             errorCode: 'INVALID_FIELD',
-            message: serverError,
-          },
+            message: serverError
+          }
         })
       );
       expect(diagnostics).toHaveLength(1);
@@ -91,8 +91,8 @@ describe('Validator', () => {
             error: {
               name: 'INVALID_FIELD',
               errorCode: 'INVALID_FIELD',
-              message: serverError,
-            },
+              message: serverError
+            }
           })
         );
 
@@ -117,8 +117,8 @@ describe('Validator', () => {
           error: {
             name: 'INVALID_TYPE',
             errorCode: 'INVALID_TYPE',
-            message: expectedError,
-          },
+            message: expectedError
+          }
         })
       );
       expect(diagnostics).toHaveLength(1);
@@ -137,8 +137,8 @@ describe('Validator', () => {
           error: {
             name: 'INVALID_TYPE',
             errorCode: 'INVALID_TYPE',
-            message: expectedError,
-          },
+            message: expectedError
+          }
         })
       );
       expect(diagnostics).toHaveLength(1);

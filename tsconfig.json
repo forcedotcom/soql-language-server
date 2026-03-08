@@ -9,6 +9,7 @@
     },
     "declaration": true,
     "lib": ["es2018"],
+    "skipLibCheck": true,
     "module": "commonjs",
     "moduleResolution": "node",
     "outDir": "lib",

@@ -25,7 +25,7 @@ export const soqlFunctions: SOQLFunction[] = [
   {
     name: 'AVG',
     types: ['double', 'int', 'currency', 'percent'],
-    isAggregate: true,
+    isAggregate: true
   },
   {
     name: 'COUNT',
@@ -46,9 +46,9 @@ export const soqlFunctions: SOQLFunction[] = [
       'picklist',
       'reference',
       'textarea',
-      'url',
+      'url'
     ],
-    isAggregate: true,
+    isAggregate: true
   },
   {
     name: 'COUNT_DISTINCT',
@@ -69,9 +69,9 @@ export const soqlFunctions: SOQLFunction[] = [
       'picklist',
       'reference',
       'textarea',
-      'url',
+      'url'
     ],
-    isAggregate: true,
+    isAggregate: true
   },
   {
     name: 'MAX',
@@ -93,9 +93,9 @@ export const soqlFunctions: SOQLFunction[] = [
       'picklist',
       'reference',
       'textarea',
-      'url',
+      'url'
     ],
-    isAggregate: true,
+    isAggregate: true
   },
   {
     name: 'MIN',
@@ -117,21 +117,24 @@ export const soqlFunctions: SOQLFunction[] = [
       'picklist',
       'reference',
       'textarea',
-      'url',
+      'url'
     ],
-    isAggregate: true,
+    isAggregate: true
   },
   {
     name: 'SUM',
     types: ['int', 'double', 'currency', 'percent'],
-    isAggregate: true,
-  },
+    isAggregate: true
+  }
 ];
 
-export const soqlFunctionsByName = soqlFunctions.reduce((result, soqlFn) => {
-  result[soqlFn.name] = soqlFn;
-  return result;
-}, {} as Record<string, SOQLFunction>);
+export const soqlFunctionsByName = soqlFunctions.reduce(
+  (result, soqlFn) => {
+    result[soqlFn.name] = soqlFn;
+    return result;
+  },
+  {} as Record<string, SOQLFunction>
+);
 
 const typesForLTGTOperators = [
   'anyType',
@@ -145,7 +148,7 @@ const typesForLTGTOperators = [
   'string',
   'textarea',
   'time',
-  'url',
+  'url'
 ];
 
 // SOQL operators semantics.
@@ -160,7 +163,7 @@ export const soqlOperators: {
   '>=': { types: typesForLTGTOperators, notNullable: true },
   INCLUDES: { types: ['multipicklist'], notNullable: true },
   EXCLUDES: { types: ['multipicklist'], notNullable: true },
-  LIKE: { types: ['string', 'textarea', 'time'], notNullable: true },
+  LIKE: { types: ['string', 'textarea', 'time'], notNullable: true }
 };
 
 export const soqlDateRangeLiterals = [
@@ -186,7 +189,7 @@ export const soqlDateRangeLiterals = [
   'NEXT_FISCAL_QUARTER',
   'THIS_FISCAL_YEAR',
   'LAST_FISCAL_YEAR',
-  'NEXT_FISCAL_YEAR',
+  'NEXT_FISCAL_YEAR'
 ];
 
 export const soqlParametricDateRangeLiterals = [
@@ -203,5 +206,5 @@ export const soqlParametricDateRangeLiterals = [
   'NEXT_N_FISCAL_QUARTERS:n',
   'LAST_N_FISCAL_QUARTERS:n',
   'NEXT_N_FISCAL_YEARS:n',
-  'LAST_N_FISCAL_YEARS:n',
+  'LAST_N_FISCAL_YEARS:n'
 ];
