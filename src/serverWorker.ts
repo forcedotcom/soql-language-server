@@ -5,9 +5,13 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { createConnection, ProposedFeatures } from 'vscode-languageserver/node';
+/// <reference lib="webworker" />
+
+import { BrowserMessageReader, BrowserMessageWriter, createConnection } from 'vscode-languageserver/browser';
 import { setupServerConnection } from './serverCore';
 
-const connection = createConnection(ProposedFeatures.all);
+const messageReader = new BrowserMessageReader(self);
+const messageWriter = new BrowserMessageWriter(self);
+const connection = createConnection(messageReader, messageWriter);
 setupServerConnection(connection);
 connection.listen();
