@@ -8,10 +8,14 @@
   "main": "lib/index.js",
   "scripts": {
     "build": "tsc --project .",
+    "prepack": "tsc --project .",
     "clean": "rimraf lib && rimraf node_modules",
     "lint": "eslint src/",
     "test": "jest --runInBand",
     "test:unit:coverage": "jest --runInBand --coverage"
+  },
+  "publishConfig": {
+    "access": "public"
   },
   "dependencies": {
     "@salesforce/soql-common": "2.0.0",
